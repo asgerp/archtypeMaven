@@ -45,4 +45,13 @@ where patterns is a list of patterns the component participates in. A pattern co
 all extern jars should be placed in lib/ folder.
 
 * [alloy](http://alloy.mit.edu/alloy/download.html)
-* [Apache commons lang 3](http://commons.apache.org/lang/download_lang.cgi)
+
+You have to install alloy locally to maven 
+
+	mvn install:install-file -Dfile=/path/to/alloy4.2.jar -DgroupId=alloy4.2 -DartifactId=alloy4 -Dversion=1.0.0 -Dpackaging=jar
+	
+Also make sure that the java jdk and jre are the same by updating and by setting:
+
+	export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.7.0_13.jdk/Contents/Home"
+	
+
