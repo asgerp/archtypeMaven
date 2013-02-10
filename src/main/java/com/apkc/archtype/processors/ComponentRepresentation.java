@@ -11,11 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 
 
 
-
-/**
- *
- * @author asger
- */
 public class ComponentRepresentation implements Serializable{
     private String componentName;
     private String pattern;
