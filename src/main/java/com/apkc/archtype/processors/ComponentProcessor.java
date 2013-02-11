@@ -100,7 +100,7 @@ public class ComponentProcessor extends AbstractProcessor {
             }
             allComponents.putAll(components);
             allRefs.putAll(references);
-            ProcessorUtils.writeRefsTofile(references, fRef);
+            ProcessorUtils.writeRefsTofile(allRefs, fRef);
             ProcessorUtils.writeTofile(allComponents, fComp);
         }
         if(keep_processing.equals("yes")){
