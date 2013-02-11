@@ -83,17 +83,25 @@ public class ComponentProcessor extends AbstractProcessor {
         }
 
         
-        setUpReferences(references, components);
-        File f = new File(temp_file_path + "components.ser");
-        log.debug(f.exists());
+        File fComp = new File(temp_file_path + "components.ser");
+        log.debug("HOLLA!");
+        File fRef = new File(temp_file_path + "references.ser");
+        log.debug(fComp.exists());
         if(claimed ){
             HashMap<String, ArrayList<ComponentRepresentation>> allComponents = new HashMap<>();
-            if(f.exists()) {
-                HashMap<String, ArrayList<ComponentRepresentation>> readComponents = ProcessorUtils.readFromFile(f);
+            HashMap<String, ArrayList<String>> allRefs = new HashMap<>();
+            if(fComp.exists()) {
+                HashMap<String, ArrayList<ComponentRepresentation>> readComponents = ProcessorUtils.readFromFile(fComp);
                 allComponents.putAll(readComponents);
             }
+            if(fRef.exists()){
+                HashMap<String, ArrayList<String>> readRefs = ProcessorUtils.readRefsFromFile(fRef);
+                allRefs.putAll(readRefs);
+            }
             allComponents.putAll(components);
-            ProcessorUtils.writeTofile(allComponents, f);
+            allRefs.putAll(references);
+            ProcessorUtils.writeRefsTofile(references, fRef);
+            ProcessorUtils.writeTofile(allComponents, fComp);
         }
         if(keep_processing.equals("yes")){
             App.processFromFile();
@@ -180,50 +188,5 @@ public class ComponentProcessor extends AbstractProcessor {
             log.debug("\t\t}");
         }
         log.debug("}");
-    }
-
-    /**
-     *
-     * @param references
-     * @param components
-     */
-    private void setUpReferences(HashMap references, HashMap components) {
-        Iterator iterator = references.entrySet().iterator();
-        // Iterate over each annotated class/type
-        while (iterator.hasNext()) {
-            Map.Entry next = (Map.Entry) iterator.next();
-            // The annotated class
-            String anClass = (String) next.getKey();
-            Iterator compIt = components.entrySet().iterator();
-            // List of perhaps unannotated references
-            ArrayList<String> annotatedRefs = (ArrayList<String>) next.getValue();
-            // Iterate over each pattern(ComponentRepresentation)
-            while (compIt.hasNext()) {
-                // The pattern
-                Map.Entry pattern = (Map.Entry) compIt.next();
-                // Get the list of component representations in the pattern
-                ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) pattern.getValue();
-                Iterator<ComponentRepresentation> ite = componentRepresentation.iterator();
-                boolean inPattern = false;
-                ComponentRepresentation anClassCr = null;
-                // is the annotated class in pattern?
-                // each class in pattern
-                while (ite.hasNext()) {
-                    ComponentRepresentation c = ite.next();
-                    if (c.getComponentName().equals(anClass)) {
-                        inPattern = true;
-                        anClassCr = c;
-                    }
-                }
-                ite = componentRepresentation.iterator();
-                while (ite.hasNext()) {
-                    ComponentRepresentation c = ite.next();
-                    // extend the annotated class's references with other annotated classes found in class
-                    if (annotatedRefs.contains(c.getComponentName()) && inPattern) {
-                        anClassCr.extendReferences(c.getComponentName());
-                    }
-                }
-            }
-        }
     }
 }

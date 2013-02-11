@@ -26,6 +26,52 @@ import org.apache.log4j.Logger;
 public class ProcessorUtils {
     final static Logger log = Logger.getLogger(ComponentProcessor.class.getName());
 
+
+    /**
+     *
+     * @param references
+     * @param components
+     */
+    public static void setUpReferences(HashMap references, HashMap components) {
+        Iterator iterator = references.entrySet().iterator();
+        // Iterate over each annotated class/type
+        while (iterator.hasNext()) {
+            Map.Entry next = (Map.Entry) iterator.next();
+            // The annotated class
+            String anClass = (String) next.getKey();
+            Iterator compIt = components.entrySet().iterator();
+            // List of perhaps unannotated references
+            ArrayList<String> annotatedRefs = (ArrayList<String>) next.getValue();
+            // Iterate over each pattern(ComponentRepresentation)
+            while (compIt.hasNext()) {
+                // The pattern
+                Map.Entry pattern = (Map.Entry) compIt.next();
+                // Get the list of component representations in the pattern
+                ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) pattern.getValue();
+                Iterator<ComponentRepresentation> ite = componentRepresentation.iterator();
+                boolean inPattern = false;
+                ComponentRepresentation anClassCr = null;
+                // is the annotated class in pattern?
+                // each class in pattern
+                while (ite.hasNext()) {
+                    ComponentRepresentation c = ite.next();
+                    if (c.getComponentName().equals(anClass)) {
+                        inPattern = true;
+                        anClassCr = c;
+                    }
+                }
+                ite = componentRepresentation.iterator();
+                while (ite.hasNext()) {
+                    ComponentRepresentation c = ite.next();
+                    // extend the annotated class's references with other annotated classes found in class
+                    if (annotatedRefs.contains(c.getComponentName()) && inPattern) {
+                        anClassCr.extendReferences(c.getComponentName());
+                    }
+                }
+            }
+        }
+    }
+
     /**
      *
      * @param components
@@ -122,6 +168,26 @@ public class ProcessorUtils {
                 .append(patternName)
                 .append("]\n}\n");
     }
+    public static void writeRefsTofile(HashMap<String,ArrayList<String>> references, File f){
+        int size = references.size();
+        log.debug(size);
+        try {
+            f.createNewFile();
+            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(f)));
+            Iterator iterator = references.entrySet().iterator();
+            oos.writeObject(size);
+            while(iterator.hasNext()){
+                Map.Entry next = (Map.Entry) iterator.next();
+                String patternName = (String) next.getKey();
+                oos.writeObject(patternName);
+                oos.writeObject(next.getValue());
+            }
+            oos.close();
+        } catch (IOException ex) {
+            log.error(ex);
+        }
+    }
+
     public static void writeTofile(HashMap<String,ArrayList<ComponentRepresentation>> components, File f){
         int size = components.size();
         log.debug(size);
@@ -141,6 +207,25 @@ public class ProcessorUtils {
             log.error(ex);
         }
     }
+    public static HashMap<String, ArrayList<String>> readRefsFromFile(File f){
+        HashMap<String,ArrayList<String>> references =
+                new HashMap<>();
+        try {
+            ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(f)));
+            int reads = 0;
+            int objects = (int) ois.readObject();
+            while(reads < objects){
+                String refClass = (String)ois.readObject();
+                ArrayList<String> refs = (ArrayList<String>) ois.readObject();
+                references.put(refClass,refs);
+                reads++;
+            }
+        } catch (IOException | ClassNotFoundException ex) {
+            log.error(ex);
+        }
+        return references;
+    }
+
     public static HashMap<String, ArrayList<ComponentRepresentation>> readFromFile(File f){
         HashMap<String,ArrayList<ComponentRepresentation>> readComponents =
                 new HashMap<>();

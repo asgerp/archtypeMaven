@@ -22,7 +22,10 @@ public class App
 
     public static void processFromFile(){
         File f = new File("components.ser");
+        File fRef = new File("references.ser");
         HashMap<String, ArrayList<ComponentRepresentation>> allComponents = ProcessorUtils.readFromFile(f);
+        HashMap<String, ArrayList<String>> allReferences = ProcessorUtils.readRefsFromFile(fRef);
+        ProcessorUtils.setUpReferences(allReferences, allComponents);
         ArrayList<String> models = ProcessorUtils.generateAlloyModelsStr(allComponents);
         for (String model : models) {
             try {
