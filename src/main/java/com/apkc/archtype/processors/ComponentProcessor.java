@@ -82,8 +82,7 @@ public class ComponentProcessor extends AbstractProcessor {
             }
         }
 
-        //If there are any annotations, we will proceed to generate the annotation
-        //processor in generateOptionProcessor method
+        
         setUpReferences(references, components);
         File f = new File(temp_file_path + "components.ser");
         log.debug(f.exists());
@@ -190,22 +189,24 @@ public class ComponentProcessor extends AbstractProcessor {
      */
     private void setUpReferences(HashMap references, HashMap components) {
         Iterator iterator = references.entrySet().iterator();
-        // each annotedclass
+        // Iterate over each annotated class/type
         while (iterator.hasNext()) {
-            // annotated class
             Map.Entry next = (Map.Entry) iterator.next();
+            // The annotated class
             String anClass = (String) next.getKey();
             Iterator compIt = components.entrySet().iterator();
-            ArrayList<String> value = (ArrayList<String>) next.getValue();
-            // each pattern
+            // List of perhaps unannotated references
+            ArrayList<String> annotatedRefs = (ArrayList<String>) next.getValue();
+            // Iterate over each pattern(ComponentRepresentation)
             while (compIt.hasNext()) {
+                // The pattern
                 Map.Entry pattern = (Map.Entry) compIt.next();
-
+                // Get the list of component representations in the pattern
                 ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) pattern.getValue();
                 Iterator<ComponentRepresentation> ite = componentRepresentation.iterator();
                 boolean inPattern = false;
                 ComponentRepresentation anClassCr = null;
-                // is annotated class in pattern
+                // is the annotated class in pattern?
                 // each class in pattern
                 while (ite.hasNext()) {
                     ComponentRepresentation c = ite.next();
@@ -217,7 +218,8 @@ public class ComponentProcessor extends AbstractProcessor {
                 ite = componentRepresentation.iterator();
                 while (ite.hasNext()) {
                     ComponentRepresentation c = ite.next();
-                    if (value.contains(c.getComponentName()) && inPattern) {
+                    // extend the annotated class's references with other annotated classes found in class
+                    if (annotatedRefs.contains(c.getComponentName()) && inPattern) {
                         anClassCr.extendReferences(c.getComponentName());
                     }
                 }
