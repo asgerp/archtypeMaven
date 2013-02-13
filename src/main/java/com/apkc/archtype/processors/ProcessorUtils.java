@@ -39,20 +39,22 @@ public class ProcessorUtils {
             Map.Entry next = (Map.Entry) iterator.next();
             // The annotated class
             String anClass = (String) next.getKey();
-            Iterator compIt = components.entrySet().iterator();
-            // List of perhaps unannotated references
-            ArrayList<String> annotatedRefs = (ArrayList<String>) next.getValue();
+            // List of potential references
+            ArrayList<String> unAnnotatedRefs = (ArrayList<String>) next.getValue();
+
+            Iterator componentIterator = components.entrySet().iterator();
             // Iterate over each pattern(ComponentRepresentation)
-            while (compIt.hasNext()) {
+            while (componentIterator.hasNext()) {
                 // The pattern
-                Map.Entry pattern = (Map.Entry) compIt.next();
+                Map.Entry pattern = (Map.Entry) componentIterator.next();
                 // Get the list of component representations in the pattern
-                ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) pattern.getValue();
-                Iterator<ComponentRepresentation> ite = componentRepresentation.iterator();
+                ArrayList<ComponentRepresentation> componentRepresentations =
+                        (ArrayList<ComponentRepresentation>) pattern.getValue();
+                Iterator<ComponentRepresentation> ite =
+                        componentRepresentations.iterator();
                 boolean inPattern = false;
                 ComponentRepresentation anClassCr = null;
                 // is the annotated class in pattern?
-                // each class in pattern
                 while (ite.hasNext()) {
                     ComponentRepresentation c = ite.next();
                     if (c.getComponentName().equals(anClass)) {
@@ -60,12 +62,14 @@ public class ProcessorUtils {
                         anClassCr = c;
                     }
                 }
-                ite = componentRepresentation.iterator();
-                while (ite.hasNext()) {
-                    ComponentRepresentation c = ite.next();
-                    // extend the annotated class's references with other annotated classes found in class
-                    if (annotatedRefs.contains(c.getComponentName()) && inPattern) {
-                        anClassCr.extendReferences(c.getComponentName());
+                if(inPattern){
+                    ite = componentRepresentations.iterator();
+                    while (ite.hasNext()) {
+                        ComponentRepresentation c = ite.next();
+                        // extend the annotated class's references with other annotated classes found in class
+                        if (unAnnotatedRefs.contains(c.getComponentName())) {
+                            anClassCr.extendReferences(c.getComponentName());
+                        }
                     }
                 }
             }
