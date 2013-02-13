@@ -8,14 +8,11 @@ import com.apkc.archtype.App;
 import com.apkc.archtype.quals.ArchTypeComponent;
 import com.apkc.archtype.quals.Pattern;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -65,7 +62,6 @@ public class ComponentProcessor extends AbstractProcessor {
         }
         temp_file_path = prop.getProperty("path","");
         keep_processing = prop.getProperty("continue");
-        log.debug(keep_processing);
         //processingEnv is a predefined member in AbstractProcessor class
         //Messager allows the processor to output messages to the environment
         Messager messager = processingEnv.getMessager();
@@ -84,7 +80,6 @@ public class ComponentProcessor extends AbstractProcessor {
 
         
         File fComp = new File(temp_file_path + "components.ser");
-        log.debug("HOLLA!");
         File fRef = new File(temp_file_path + "references.ser");
         log.debug(fComp.exists());
         if(claimed ){
