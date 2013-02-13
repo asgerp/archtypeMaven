@@ -55,7 +55,7 @@ public class ProcessorUtils {
                 boolean inPattern = false;
                 ComponentRepresentation anClassCr = null;
                 // is the annotated class in pattern?
-                while (ite.hasNext()) {
+                while (ite.hasNext() && !inPattern) {
                     ComponentRepresentation c = ite.next();
                     if (c.getComponentName().equals(anClass)) {
                         inPattern = true;
