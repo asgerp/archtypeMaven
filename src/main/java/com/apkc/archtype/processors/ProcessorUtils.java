@@ -26,7 +26,6 @@ import org.apache.log4j.Logger;
 public class ProcessorUtils {
     final static Logger log = Logger.getLogger(ComponentProcessor.class.getName());
 
-
     /**
      *
      * @param references
@@ -45,7 +44,6 @@ public class ProcessorUtils {
             Iterator componentIterator = components.entrySet().iterator();
             // Iterate over each pattern(ComponentRepresentation)
             while (componentIterator.hasNext()) {
-                // The pattern
                 Map.Entry pattern = (Map.Entry) componentIterator.next();
                 // Get the list of component representations in the pattern
                 ArrayList<ComponentRepresentation> componentRepresentations =
@@ -66,7 +64,8 @@ public class ProcessorUtils {
                     ite = componentRepresentations.iterator();
                     while (ite.hasNext()) {
                         ComponentRepresentation c = ite.next();
-                        // extend the annotated class's references with other annotated classes found in class
+                        // extend the annotated class's references with other
+                        // annotated classes found in class
                         if (unAnnotatedRefs.contains(c.getComponentName())) {
                             anClassCr.extendReferences(c.getComponentName());
                         }
@@ -247,5 +246,10 @@ public class ProcessorUtils {
             log.error(ex);
         }
         return readComponents;
+    }
+
+    public static void cleanUpFiles(File fCom, File fRef){
+        fCom.delete();
+        fRef.delete();
     }
 }
