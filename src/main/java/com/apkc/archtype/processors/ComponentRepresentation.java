@@ -94,14 +94,18 @@ public class ComponentRepresentation implements Serializable{
         sb.append("one sig ").append(componentName).append(" extends ").append(getRole()).append(" { } {\n");
         sb.append("\treferences = ");
         Iterator<String> it = references.iterator();
-        while( it.hasNext()) {
-            sb.append(it.next());
-            if (it.hasNext()) {
-                sb.append(" + ");
-            } else{
-                sb.append("\n");
+        if(!it.hasNext()){
+            sb.append("none");
+        }
+        else{
+            while( it.hasNext()) {
+                sb.append(it.next());
+                if (it.hasNext()) {
+                    sb.append(" + ");
+                }
             }
         }
+        sb.append("\n");
         String[] meta = getMetaData();
         if(meta != null){
             sb.append("\tmeta = ");

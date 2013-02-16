@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -77,11 +79,10 @@ public class ComponentProcessor extends AbstractProcessor {
                 processAnnotation(e, messager, components, references);
             }
         }
-
+        //roundEnv.processingOver();
         
         File fComp = new File(temp_file_path + "components.ser");
         File fRef = new File(temp_file_path + "references.ser");
-        log.debug(fComp.exists());
         if(claimed ){
             HashMap<String, ArrayList<ComponentRepresentation>> allComponents = new HashMap<>();
             HashMap<String, ArrayList<String>> allRefs = new HashMap<>();
@@ -93,10 +94,32 @@ public class ComponentProcessor extends AbstractProcessor {
                 HashMap<String, ArrayList<String>> readRefs = ProcessorUtils.readRefsFromFile(fRef);
                 allRefs.putAll(readRefs);
             }
-            allComponents.putAll(components);
-            allRefs.putAll(references);
-            ProcessorUtils.writeRefsTofile(allRefs, fRef);
-            ProcessorUtils.writeTofile(allComponents, fComp);
+            Iterator<Entry<String, ArrayList<ComponentRepresentation>>> iterator = allComponents.entrySet().iterator();
+            while(iterator.hasNext()){
+                Entry<String, ArrayList<ComponentRepresentation>> next = iterator.next();
+                String key = next.getKey();
+                ArrayList<ComponentRepresentation> value = next.getValue();
+                if(components.containsKey(key)){
+                    ArrayList<ComponentRepresentation> getList = components.get(key);
+                    getList.addAll(value);
+                } else{
+                    components.put(key, value);
+                }
+            }
+            Iterator<Entry<String, ArrayList<String>>> iterator1 = allRefs.entrySet().iterator();
+            while(iterator1.hasNext()){
+                Entry<String, ArrayList<String>> next = iterator1.next();
+                String key = next.getKey();
+                ArrayList<String> value = next.getValue();
+                if(references.containsKey(key)){
+                    ArrayList<String> getList = references.get(key);
+                    getList.addAll(value);
+                } else{
+                    references.put(key, value);
+                }
+            }
+            ProcessorUtils.writeRefsTofile(references, fRef);
+            ProcessorUtils.writeTofile(components, fComp);
         }
         if(keep_processing.equals("yes")){
             App.processFromFile();
@@ -123,8 +146,17 @@ public class ComponentProcessor extends AbstractProcessor {
                 if (type.contains("()")) {
                     stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
                 } else // is parameter check for more than one param
-                    if (type.contains(")")) {
-                        String[] params = StringUtils.split(type.substring(type.lastIndexOf(".") + 1, type.lastIndexOf(")") + 1), ',');
+                    if (type.contains(")") && type.contains(",")) {
+                        String[] split = StringUtils.split(type, ")");
+                        String[] params = StringUtils.split(split[0], ',');
+                        for (int i = 0; i < params.length; i++) {
+                            params[i] = params[i].substring(params[i].lastIndexOf(".") + 1);
+                            log.info(params[i]);
+
+                        }
+                        split[1] = split[1].substring(split[1].lastIndexOf(".") + 1);
+                        StringUtils.strip(split[1], "(>");
+                        stringRefs.add(split[1]);
                         stringRefs.addAll(Arrays.asList(params));
                     } // is field
                     else {

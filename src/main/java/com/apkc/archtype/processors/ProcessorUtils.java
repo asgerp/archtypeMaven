@@ -91,7 +91,6 @@ public class ProcessorUtils {
             Map.Entry next = (Map.Entry) componentIterator.next();
             String patternName = (String) next.getKey();
             ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) next.getValue();
-
             StringBuilder finalStr = new StringBuilder("");
             String pat = "";
             StringBuilder contains = new StringBuilder("\telements = ");
@@ -100,8 +99,8 @@ public class ProcessorUtils {
                 while (it.hasNext()) {
                     ComponentRepresentation c = it.next();
                     contains.append(c.getComponentName());
+                    pat = c.getPattern();
                     if (it.hasNext()) {
-                        pat = c.getPattern();
                         contains.append(" + ");
                     } else {
                         contains.append("\n}\n");

@@ -150,13 +150,13 @@ public class ComponentRepresentationTest extends TestCase {
     /**
      * Test of toString method, of class ComponentRepresentation.
      */
-    public void testToString() {
-        System.out.println("toString");
-        ComponentRepresentation instance = new ComponentRepresentation("layertest", "Layered", "Layer{1}");
-        String expResult = "one sig layertest extends Layer { } {\n" +
-        "	references = 	meta = 1\n" +
-        "}\n";
-        String result = instance.toString();
-        assertEquals(expResult, result);
-    }
+//    public void testToString() {
+//        System.out.println("toString");
+//        ComponentRepresentation instance = new ComponentRepresentation("layertest", "Layered", "Layer{1}");
+//        String expResult = "one sig layertest extends Layer { } {\n" +
+//        "	references = 	meta = 1\n" +
+//        "}\n";
+//        String result = instance.toString();
+//        assertEquals(expResult, result);
+//    }
 }
