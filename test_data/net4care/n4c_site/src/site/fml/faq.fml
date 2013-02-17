@@ -1,0 +1,204 @@
+<?xml version="1.0"?>
+<faqs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/FML/1.0"
+  xsi:schemaLocation="http://maven.apache.org/FML/1.0 http://maven.apache.org/xsd/fml-1.0.xsd"
+  id="General FAQ">
+
+<!--
+  <part id="General">
+    <faq id="where">
+      <question>Where did Maven come from?</question>
+      <answer>
+        <p>
+          Maven was created by a group of software developers who were tired
+          of wasting their time fiddling around with builds and wanted to get
+          down to brass tacks and actually develop software!
+        </p>
+      </answer>
+    </faq>
+    <faq id="why">
+      <question>Why is Maven so wildly popular?</question>
+      <answer>
+        <p>
+          Maven saves you so much time in your software development efforts that
+          you will have time to learn a second language, relax ten hours a
+          day, and train for that marathon you've always wanted to run!
+        </p>
+      </answer>
+    </faq>
+  </part>
+-->
+
+  <part id="Nerdy Internal Development">
+    <faq id="maven-junit-output">
+      <question>How do I make Maven output more information when JUnit
+      testcases fail?</question>
+      <answer>
+	<p>
+Set the useFile property 
+<br/>
+mvn test -Dsurefire.useFile=false
+<br/>
+
+Now you can see line numbers within the failing test case in JUnit
+<br/>
+
+Source: http://stackoverflow.com/questions/5080540/displaying-junit-fail-messages-through-maven2
+
+	</p>
+      </answer>
+    </faq>
+
+
+    <faq id="maven-shutup">
+      <question>
+	How do I make Maven SHUT UP - I drown in information?
+      </question>
+      <answer>
+	<p>
+	  mvn -q test
+	</p>
+      </answer>
+    </faq>
+    <faq id="windows-sqlite-db-inspect">
+      <question>
+	How do I inspect the SQLite DB's contents?
+      </question>
+      <answer>
+	<p>
+On Windows use the resources/sqlite3.exe on the db,
+ for instance one test case stores in n4c_osgi/n4c_test/xdstest.db
+ Use sqlite3.exe on this file which acts as a shell where you may
+ query SQL. Read SQLiteXDSRepository.java for table layout.
+<br/>
+Nice commands:
+<br/>
+
+.tables = list all tables
+<br/>
+
+.schema = list all schemas
+	</p>
+      </answer>
+    </faq>
+
+
+    <faq id="maven-local-repository">
+      <question>
+	How do I change the Maven local repository location on the disk?
+      </question>
+      <answer>
+	<p>
+	  Locate the file $M2_HOME/conf/settings.xml. Edit the 'local
+	  repository tag' like e.g.
+<pre>
+	  &lt;localRepository>&gt;d:/proj/.m2&lt;/localRepository&gt;
+</pre>  
+	  More info at: http://maven.apache.org/settings.html
+	  
+	  (My SSD disk C: ran almost full :)
+	</p>
+      </answer>
+    </faq>
+
+
+    <faq id="maven-web-site">
+      <question>
+	How do I build the Net4Care web site locally?
+      </question>
+      <answer>
+	<p>
+mvn -q site
+<br/>
+and point your web browser at
+<br/>
+ target/site/project-info.html
+	</p>
+      </answer>
+    </faq>
+
+    <faq id="maven-exec">
+      <question>
+	How do I tell Maven to execute a specific .class file?
+      </question>
+      <answer>
+	<p>
+	  Change to the root directory with the POM file. Then
+use exec:java goal, like
+
+	  <pre>
+mvn exec:java -Dexec.mainClass="com.hbc.client.HomeMonitorApp"
+	  </pre>
+	</p>
+      </answer>
+    </faq>
+
+    <faq id="multiple-eclipse-project">
+      <question>
+	How do I keep two or more branches of the project in Eclipse?
+      </question>
+      <answer>
+	<p>
+	  This is pretty tricky as Eclipse cannot import two project
+	  that have the same name; and as checking out another branch
+	  does not rename a project, Eclipse refuses to have more than
+	  one instance at the time.
+	</p>
+	<p>
+	  The trick is to rename the project(s) as several resources on
+	  the web mention. Here is my recipe:
+	  <ol>
+	    <li>Checkout the branch using command-line SVN into a new
+	    folder (or rather, just do not use Eclipse to do it)</li>
+	    <li>Run 'mvn eclipse:eclipse'</li>
+	    <li>For each of the subprojects (n4c_forwarder, etc.) edit
+	    the .project file and do the renaming of the project in
+	    the 'name' tag. For instance, I renamed all project names
+	    from 'X' to 'X01' for a relase 0.1 branch.</li>
+	    <li>Now import the folder into a new Eclipse working
+	    set. This set will most likely have tons of compilation
+	    errors because the build paths of each new project points
+	    to the other projects in Eclipse with similar names. We
+	    have to fix that.</li>
+	    <li>For each project in the branch working set, fix the
+	    build paths: menu project->properties; select java build
+	    path; select tab properties; and remove all references to
+	    project X and replace them with references to X01.</li>
+	  </ol>
+	  This should do it.
+	</p>
+      </answer>
+    </faq>
+    
+    <faq id="change port">
+      <question>
+        How do I change the default port (8080) of the jetty server?
+      </question>
+      <answer>
+	<p>
+		To change the default port from 8080 to 8082 add the following property to the pom.xml file:
+		
+		<pre>
+		&lt;properties&gt;
+		    	...
+		    	&lt;org.osgi.service.http.port&gt;8082&lt;/org.osgi.service.http.port&gt;
+		    	...
+    		&lt;/properties&gt;
+		</pre>
+	</p>
+      </answer>
+    </faq>
+
+
+<!--
+    <faq id="link">
+      <question>
+      </question>
+      <answer>
+	<p>
+	</p>
+      </answer>
+    </faq>
+-->
+
+  </part>
+</faqs>

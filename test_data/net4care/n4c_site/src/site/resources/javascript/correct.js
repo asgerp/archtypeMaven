@@ -1,0 +1,1 @@
+document.body.innerhtml = document.body.innerhtml.replace('$headContent','');

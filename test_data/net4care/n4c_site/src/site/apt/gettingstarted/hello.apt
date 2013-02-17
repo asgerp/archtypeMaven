@@ -1,0 +1,408 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+
+A Hello, World (telemedical) application
+~~~~~~~~~~~~~~
+
+* Prequisites
+~~~~~~~~~~~~~~~
+  We assume that you have {{{./download.html}downloaded and installed}} Net4Care. 
+
+* Overview
+~~~~~~~~~~~~~~~
+
+  In this example, we will review two simple "Hello World" clients
+  that communicate with the Net4Care server side (n4c_receiver). You
+  will find these programs in the n4c_example/HelloWorld folder of the
+  distribution.
+
+  One client
+  "HelloUpload" demonstrates how to write Java code using the
+  framework that defines an <<tele observation>> (that is, a set of
+  clinical measurements for a patient) and uploads it to the Net4Care
+  server. 
+
+  The other client "HelloQuery" demonstrates how to program a
+  query for all tele observations made during the last 10 minutes.
+
+* Buildling and Starting the server
+~~~~~~~~~~~~~~~
+  First, you need to build the Net4Care framework and install it
+  in your local {{{http://maven.apache.org/}Maven}} repository of bundles.
+
++--------------------------------------+
+  (in the root folder, execute)
+  mvn install
++--------------------------------------+
+
+  This will build, test, and finally install the bundles of the
+  framework. The first time, Maven will download a lot of bundles that
+  are depended upon. 
+
+  Next, you should start a local Net4Care web server. This server will
+  be bound to "http://localhost:8080/observation".
+
+
+
++--------------------------------------+
+  cd (root)/n4c_osgi/n4c_receiver
+  mvn pax:provision
++--------------------------------------+
+
+
+
+  This starts an instance of the
+  {{{http://felix.apache.org/site/index.html}Felix OSGi server}}
+  running the framework's server bundle. Felix is an Apache
+  implementation of the {{{http://www.osgi.org/Main/HomePage}OSGi}}
+  specification which is a dynamic module system for Java: an enhanced
+  and dynamic replacements for handling Java "jars".
+
+  The maven commandline "pax:provision" invokes the maven
+  {{{http://www.ops4j.org/projects/pax/construct/maven-pax-plugin/}Pax
+  plugin}} that handles OSGi bundles. The "provision" target
+  provisions all local and imported bundles into the OSGi
+  framework---essentially running the server.
+
+  Maven and Felix are generally very verbose and print a lot of
+  information, but you should be able to see the
+
+---
+____________________________
+Welcome to Apache Felix Gogo
+
+g! 
+---
+
+  printed somewhere.
+
+  To test it, you may open your browser on URL
+  {{http://localhost:8080/observation}} which should show a small
+  welcome message. (This works best in Firefox as the message is plain-text.)
+
+  <Notes and trouble shooting:>
+  
+  * You may get warnings from your firewall---you should allow
+    Java to communicate, otherwise the HelloWorld clients will
+    fail.
+
+  * Be sure to execute the pax:provision in the
+    <n4c_osgi/n4c_receiver> folder. Otherwise you will get an "No
+    plugin found for prefix 'pax'" error and the server is not started.
+
+  * In Ubuntu Server edition you may have a Tomcat webserver running,
+    you will have to shut that down for the Net4Care server to get any
+    connections.  
+
+* Building and Executing the HelloWorld clients
+~~~~~~~~~~~~~~~
+
+  Start another shell, and change to the n4c_example/HelloWorld
+  folder, and tell Maven to compile the code here.
+
++--------------------------------------+
+  cd (root)/n4c_example/HelloWorld
+  mvn compile
++--------------------------------------+
+
+  (As these small demonstrations programs do not define
+  new bundles, you do not have to 'install').
+
+  Next, execute the "HelloUpload" program (explained below)
+  that will upload a single observation. Issue the command:
+
++--------------------------------------+
+mvn -q exec:java -Dexec.mainClass="org.net4care.demo.HelloUpload"
++--------------------------------------+
+ 
+  (Windows users: the batch script "upload.bat" contains the above
+  command.)
+
+  Output should be something like
+
+---
+Hello Net4Care World: Uploading an observation
+   to server at address: http://localhost:8080/observation
+   (Make sure the Net4Care server is running!)
+Upload result: true
+Upload connection result: 200OK
+---
+
+  Next, let us try to query for observations for the last
+  10 minutes:
+
++--------------------------------------+
+mvn -q exec:java -Dexec.mainClass="org.net4care.demo.HelloQuery"
++--------------------------------------+
+
+  (Again, a Windows batch script "query.bat" contains the command.)
+
+  This should result in the something like
+
+---
+Hello Net4Care World: Query all observations for last 10 minutes
+   to server at address: http://localhost:8080/observation
+   (Make sure the Net4Care server is running!)
+The query is: Forwarder.QueryPersonTimeInterval for 251248-4916 in time (1345721
+721411-1345722321411)
+
+=== Observations from the last 10 minutes ===
+ --- RAW FORMAT - using toString() ---
+STO: 251248-4916/MyOrgID/Device: Manufac1/MODEL1/1/obs=(Spiro: FEV1:2.8 L/FVC:3.
+5 L(false))
+STO: 251248-4916/MyOrgID/Device: Manufac1/MODEL1/1/obs=(Spiro: FEV1:2.8 L/FVC:3.
+5 L(false))
+ --- OWN FORMAT - using API ---
+-*-*-*-*-*-
+  At date/time: 23/08/2012 14:35
+    FVC=3.5L FEV1=2.8L.
+    Answer to question "Feeling well?" : false
+    Comment: I have difficulties in breathing.
+-*-*-*-*-*-
+  At date/time: 23/08/2012 14:42
+    FVC=3.5L FEV1=2.8L.
+    Answer to question "Feeling well?" : false
+    Comment: I have difficulties in breathing.
+End.
+---
+
+* Code walkthrough
+~~~~~~~~~~~~~~~
+
+** HelloUpload
+
+   The HelloUpload client does three things
+     
+     * <<Configure the DataUploader>> which is responsible for
+       uploading observations to the server
+
+     * <<Define a tele observation>> with proper information on the
+       patient, devices used, and of course measured values
+
+     * <<Perform the actual upload>>, testing that it went well
+
+** Configure the DataUploader
+
+   As both the upload and query application needs to configure the
+   uploader, this is encapsulated in a global function.
+
++---
+    // Configure the architecture
+    dataUploader = Shared.setupN4CConfiguration( serverAddress );
++---
+
+   This function looks like this:
+
++---
+  public static DataUploader setupN4CConfiguration(String serverAddress) {
+    DataUploader dataUploader = null;
+    Serializer serializer = new JacksonJSONSerializer();    
+    try {
+      dataUploader = 
+        new StandardDataUploader(serializer, 
+                                 new HttpConnector( serverAddress ));
+    } catch (MalformedURLException e) {
+      e.printStackTrace();
+      System.exit(1);
+    } 
+    return dataUploader;
+  }
++---
+  
+  Basically, we use a default implementation and configure it with a
+  serializer role and a connector role. Presently the Net4Care
+  framework only contains a single serializer implementation that uses
+  JSON as on-the-wire format. There are two implementations for the
+  connector, and here we use one that utilizes HTTP as transport
+  protocol.
+
+  
+** Define an tele observation
+
++---
+    // Define the actual measured values for the patient,
+    // here 3.5L for full lung capacity and 2.8L for 1 second
+    // lung capacity
+    Spirometry sp = new Spirometry( 3.5, 2.8, 
+                                    false );
+
+    // Define the information regarding the used device
+    DeviceDescription devdesc = 
+      new DeviceDescription("Spirometry", "MODEL1", "Manufac1", 
+                            "1", "1", "1.0", "1.0");
+    // And finally define the observation itself. The patient ID is that
+    // of the 'standard' patient Nancy.
+    StandardTeleObservation sto =
+      new StandardTeleObservation("251248-4916", "MyOrgID", 
+                                  "myTreatmentId", Codes.LOINC_OID, 
+                                  devdesc, sp, 
+                                  "I have difficulties in breathing." );
++---  
+
+  You use two standard classes from the framework
+  <<<StandardTeleObservation>>> and <<<DeviceDescription>>> which
+  define patient identity, organizational identity, etc., and device
+  characteristics. Finally, to adapt the framework to a specific set
+  of measurements, you define your own class (here <<<Spirometry>>>)
+  that must implement the <<<ObservationSpecifics>>> interface and
+  obey the Java Bean properties. Much more detail can be found in
+  {{{../developing/observation.html}How to define and upload observations}}.
+
+** Perform the actual upload
+
++---
+    // Upload the observation to the server...
+    FutureResult result = null;
+    try {
+      result = dataUploader.upload(sto);
+      result.awaitUninterruptibly();
+    } catch (IOException e1) {
+      System.err.println("Currently unable to connect to server");
+    }
+    if ( result == null ) {
+      System.out.println( "Upload returned a null result (was the server running?)." );
+    } else {
+      System.out.println( "Upload result: "+result.isSuccess() );
+      System.out.println( "Upload connection result: "+result.result() );
+    }
++---
+
+  The basic upload is done using the <<<upload(sto)>>> method of the
+  dataUploader. It will return a <<<FutureResult>>> which can be
+  queried for the result of the operation.
+
+** HelloQuery
+
+  The HelloQuery program does
+
+   * <<Configure the DataUploader>>
+   
+   * <<Define a query>> for the last ten minutes of observations on
+     the given person
+
+   * <<Send the query>> to the server and
+
+   * <<Process the returned observations>>
+
+** Configure the DataUploader
+
+   This step is identical to the one defined in the HelloUpload program.
+
+** Define a query
+
+  The interface <<<Query>>> has a set of implementing classes that
+  define the queries that are possible. Here we demonstrate a query
+  for a given patient ID and given time interval (from ten minutes ago
+  up until now), which is defined by the query class
+  <<<QueryPersonTimeInterval>>>.
+
++---
+    Query query; 
+
+    // Define a time interval spanning from now and 10 minutes back in time
+    long now = System.currentTimeMillis();
+    long tenminutesago = now - 1000L * 60L * 10L;
+    // Select the requrired query by picking the proper class implementing
+    // the query interface
+    query = new QueryPersonTimeInterval(personId, tenminutesago, now);
+    System.out.println("The query is: "+ query+"\n" );
++---
+
+
+** Send the query
+
+  Next we send the query to the server using our <<<dataUploader>>>
+  instance, and validate the returned response, defined by an instance
+  of the <<<QueryResult>>> interface.
+
++---
+    // Send the query to the server.
+    QueryResult res = null;
+    try {
+      res = dataUploader.query(query);
+      res.awaitUninterruptibly();
+    } catch (IOException e) {
+      System.out.println("Currently unable to connect to server");
+      e.printStackTrace();
+      System.exit(-1);
+    } catch (Net4CareException e) {
+      System.out.println("Encountered a Net4Care exception \n"
+                         +"\n Please inspect the console for details");
+      e.printStackTrace();
+      System.exit(-1);
+    }
++---
+
+** Process the returned observations
+
+   Finally, we retrive the list of <<<StandardTeleObservation>>> that
+   match the query
+   from the response. We next iterate this list in two ways, one using
+   the internal <<<toString()>>> method, and one using the API's of
+   the tele observation class. Note how we cast the tele observation's
+   observation specifics object to our own <<<Spirometry>>> class.
+
+
++---
+    // Retrieve the list of observations... 
+    List<StandardTeleObservation> obslist;
+    System.out.println( "=== Observations from the last 10 minutes ===" );
+    obslist = res.getObservationList();
+
+    // First output observations using just the toString() method
+    System.out.println( " --- RAW FORMAT - using toString() ---" );
+    for ( StandardTeleObservation sto : obslist ) {
+      System.out.println( sto.toString() );
+    }
+
+    // Next output observations using the API of StandardTeleObservation
+    // as well as the special Spirometry class we ourselves have defined.
+    System.out.println( " --- OWN FORMAT - using API ---" );
+    String result = null;
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+
+    for ( StandardTeleObservation sto : obslist ) {
+      System.out.println( "-*-*-*-*-*-" ); 
+      long timestamp = sto.getTime(); 
+      Date d = new Date(timestamp);
+      Spirometry spiro = (Spirometry) sto.getObservationSpecifics();
+      String nicedate = sdf.format( d );
+      result = "  At date/time: "+nicedate+"\n"+
+        "    FVC="+spiro.getFvc().getValue()+spiro.getFvc().getUnit()+
+          " FEV1="+spiro.getFev1().getValue()+spiro.getFev1().getUnit()+
+        ".\n"+
+        "    Answer to question \"Feeling well?\" : "
+        +spiro.getQuestionAAnswer()+"\n"+
+        "    Comment: "+ sto.getComment();
+      System.out.println( result );
+    }
+    System.out.println( "End." );
++---
+
+** HelloPHMRQuery
+
+  This program is nearly identical to HelloQuery except that the query
+  is for the Personal Health Monitoring Record (PHMR) version of the
+  tele observations instead of the Java objects. PHMR is a Continua
+  Alliance defined extension of the Clinical Document Architecture
+  that is part of HL7.
+
+* Experiments
+
+  You may experiment with the code as you like but beware of the
+  following implementation constraints in the present release
+
+  * Only a few person IDs are known by the server as it does not have
+  a real lookup of person identities in national registers. You can
+  find the list of known persons in Java class
+  <<<FakeObjectExternalDataSource>>> in the n4c_storage bundle.
+
+  * If you want to erase the database, you will find it in the runner
+    folder in n4_receiver. It is called "xds.db".
+
+  * If your experiments really mix up things, a clean and reinstall
+    often helps. Issue "mvn clean install" in the n4c_osgi folder, and
+    rerun the server.

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  
+  <name>Net4Care SkypeSpirometry Example</name>
+  <description>Demonstrates how to use Net4Care Skype</description>
+  
+  <groupId>org.net4care</groupId>
+  <artifactId>org.net4care.skype</artifactId>
+  <version>0.3-SNAPSHOT</version>
+
+  <packaging>pom</packaging>
+	
+  <distributionManagement>
+    <repository>
+      <id>ec2repo</id>
+      <url>http://${ec2.dns}:8083/archiva/repository/snapshots/</url>
+    </repository>
+  </distributionManagement>
+  
+  <modules>
+    <module>n4c_data</module>
+    <module>n4c_patient</module>
+    <module>n4c_physician</module>
+  </modules>
+</project>

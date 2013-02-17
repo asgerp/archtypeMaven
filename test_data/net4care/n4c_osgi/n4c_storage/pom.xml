@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.net4care</groupId>
+	<artifactId>n4c_storage</artifactId>
+	<version>${project.parent.version}</version>
+
+	<name>Net4Care Storage Bundle</name>
+
+	<packaging>bundle</packaging>
+
+	<properties>
+    	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    
+	<parent>
+		<groupId>org.net4care</groupId>
+		<artifactId>n4c_osgi_parent</artifactId>
+		<version>0.3-SNAPSHOT</version>
+		<relativePath>../parent</relativePath>
+	</parent>
+
+	<!-- HBC introduced to get access to utility methods -->
+	<dependencies>
+		<dependency>
+			<groupId>org.net4care</groupId>
+			<artifactId>n4c_observation</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.xerial</groupId>
+			<artifactId>sqlite-jdbc</artifactId>
+			<version>3.6.16</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.sling</groupId>
+			<artifactId>org.apache.sling.commons.log</artifactId>
+			<version>2.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>axis</groupId>
+			<artifactId>axis</artifactId>
+			<version>1.4</version>
+		</dependency>		
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.4.5-rc1</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.activation</groupId>
+			<artifactId>activation</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+	</dependencies>
+
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>2.3.7</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Export-Package>org.net4care.storage,org.net4care.storage.queries
+						</Export-Package>
+						<Import-Package>!org.ibex.classgen,*</Import-Package>
+						<Private-Package>org.net4care.storage.delegate</Private-Package>
+						<Service-Component>
+							org.net4care.storage.delegate.SQLiteXDSRepository;provide:="org.net4care.storage.XDSRepository,org.net4care.storage.ObservationCache";immediate:=false,
+							org.net4care.storage.delegate.NullXDSRepository;provide:=org.net4care.storage.XDSRepository;immediate:=false, 
+							org.net4care.storage.delegate.NullObservationCache;provide:=org.net4care.storage.ObservationCache;immediate:=false,
+							org.net4care.storage.delegate.FakeObjectExternalDataSource;provide:=org.net4care.storage.ExternalDataSource;immediate:=false
+						</Service-Component>
+						<Embed-Dependency>artifactId=sqlite-jdbc</Embed-Dependency>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

@@ -1,0 +1,72 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+
+Using the Net4Care Maven plugin
+~~~~~~~~~~~~~~
+
+* Overview
+~~~~~~~~
+
+ The Net4Care Maven plugin allows you to manage Net4Care servers in a
+ cloud. Currently, Amazon EC2 is supported.
+
+* Prerequisites
+
+ See the {{{cloud}guide on using the Amazon EC2 command line tools}}
+ with Net4Care for installation prerequisites.
+
+ You may add the following to your POM to use the plugin
+
++----+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.net4care</groupId>
+        <artifactId>maven-net4care-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
++----+
+
+ This is already added to {{{./../gettingstarted/hello.html}Hello,
+ World!  tutorial}} POMs (TODO: implement). We are using the Hello, World!
+ tutorial as a starting point in the following guide
+
+** The ec2run goal
+
+ The ec2run goal launches an Amazon instance where a Net4Care
+ server may be run. (TODO: link to instance documentation)
+
+ To invoke it, do the following:
+
++----+
+cd com.smb.spirometry
+mvn net4care:ec2run
++----+
+
+ This will run an EC2 instance and report the DNS name when it
+ finishes:
+
++---+
+[INFO] --- maven-net4care-plugin:0. ...-SNAPSHOT:ec2run (default-cli) @ com.smb.spirometry ---
+[INFO] Amazon region is: eu-west-1
+[INFO] Amazon instance type is: t1.micro
+[INFO] Amazon security group is: net4care-server
+[INFO] Amazon key name is: net4care-key
+[INFO] (Finding suitable image)
+[INFO] Amazon image id is: ami-39dde24d
+[INFO] (Creating instance)
+[INFO] Amazon instance id is: i-9cdfb1d5
+[INFO] (Waiting for DNS name)
+[INFO] (Waiting for DNS name)
+[INFO] (Waiting for DNS name)
+[INFO] (Waiting for DNS name)
+[INFO] Amazon DNS name is: ec2-46-51-149-45.eu-west-1.compute.amazonaws.com
+[INFO] ------------------------------------------------------------------------
++---+
+
+** The ec2deploy goal
+

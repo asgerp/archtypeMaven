@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.net4care</groupId>
+  <artifactId>n4c_osgi</artifactId>
+  <version>0.3-SNAPSHOT</version>
+
+  <name>Net4Care OSGi</name>
+
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>parent</module>
+    <module>n4c_security</module>
+    <module>n4c_receiver</module>
+    <module>n4c_observation</module>
+    <module>n4c_serializer</module>
+    <module>n4c_forwarder</module>
+    <module>n4c_graph</module>
+    <module>n4c_skype</module>
+    <module>n4c_storage</module>
+    <module>n4c_test</module>
+    <module>n4c_simplestorage</module>
+    <module>n4c_xdsb_codeplex</module>
+  </modules>
+
+</project>

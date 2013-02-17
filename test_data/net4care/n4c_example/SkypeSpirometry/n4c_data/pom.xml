@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+
+  <name>Net4Care SkypeSpirometry Data</name>
+  <description>The observation data</description>
+  
+	<groupId>org.net4care</groupId>
+	<artifactId>n4c_data</artifactId>
+	<version>0.3-SNAPSHOT</version>
+
+	<packaging>jar</packaging>
+
+	<distributionManagement>
+		<repository>
+			<id>ec2repo</id>
+			<url>http://${ec2.dns}:8083/archiva/repository/snapshots/</url>
+		</repository>
+	</distributionManagement>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.net4care</groupId>
+      <artifactId>n4c_observation</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+	 <groupId>org.apache.felix</groupId>
+	 <artifactId>maven-bundle-plugin</artifactId>
+	 <extensions>true</extensions>
+	 <configuration>
+	   <instructions>
+	     <Export-Package>com.smb.data</Export-Package>
+	   </instructions>
+	 </configuration>
+      </plugin>
+      <plugin>
+	 <groupId>org.ops4j</groupId>
+	 <artifactId>maven-pax-plugin</artifactId>
+	 <version>1.5</version>
+	 <configuration>
+	   <provision>
+	     <param>--platform=felix</param>
+	   </provision>
+	 </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
+
+

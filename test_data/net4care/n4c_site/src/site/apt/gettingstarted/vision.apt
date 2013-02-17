@@ -1,0 +1,65 @@
+The Vision of Net4Care
+~~~
+
+  The research project Net4Care's aim is to develop a ecosystem to
+  make it easy for small and medium sized businesses (SMBs) to build
+  telemedical applications for the home.
+
+  The main area of support within the present edition is handling
+  clinical observations in the home and ensuring they become available
+  for clinician's work. A typical end-user scenario is: 
+
+*-----* 
+Knud has chronic obstructive pulmonary disease (COPD; KOL in
+ Danish). Several times a day, he blows hard in the spirometry device
+ that is connected to his small Net4Care-enabled device. On the
+ device, he can see simple graphs that plots the measured values over
+ the last week. More importantly, the values are uploaded to national
+ XDS repositories as standardized HL7 clinical documents, allowing his
+ general practitioner (GP) to view the data, as can clinicians at his
+ regional hospital. | 
+*-----*
+
+  While this scenario is a classic one and supported by many projects,
+  the central vision of Net4Care is to make it <easy and simple> to
+  develop the software for such home devices. Thus, a main goal of
+  Net4Care is expressed in the following scenario:
+
+*-----*
+  An SMB developer with a strong background in embedded systems wants
+  to develop a telemedical application for the home that supports
+  uploading measured clinical values. He wants to explore and
+  prototype a solution and chooses to use the Net4Care framework
+  framework as part of preliminary exploration and prototyping. Within
+  four staff hours, the framework is downloaded and installed and he
+  has tested a first prototype having a full round-trip of clinical
+  measurements (from device to simulated server and back again). |
+*-----*
+
+  The Net4Care framework helps in this by providing 
+
+    * <A Java-based framework that hides clinical complexity>, and
+      lets developers focus on designing good user interfaces and
+      implementing connections to medical devices, instead of
+      spending large efforts on understanding XDS and HL7 standards.
+
+    * <Learning material for a quick start>. Tutorials, source code
+      examples, and demonstrator applications are provided. These help
+      SMB developers to understand, design, and implement home
+      telemedical applications in general, and insight into the
+      specific clinical aspects in particular.
+
+    * <Support for safe experimentation with staged development>. A
+      staged development environment that allows the SMB developers to
+      safely experiment with and develop their applications without
+      all the hazzles of setting up a distributed environment is
+      provided. Later, they can gradually move to a local distributed
+      environment, further on to connect to Net4Care testing servers,
+      before finally committing to full production quality
+      applications that interact with the live medical servers.
+
+    * <Servers that SMBs may use to host medical services>. A set of
+      Net4Care servers that bridge regional and national XDS
+      repositories as well as other medical services is provided. Thus
+      there is no need for a SMB to create its own server software nor
+      run a server farm.

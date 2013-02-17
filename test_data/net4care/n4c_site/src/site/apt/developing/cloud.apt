@@ -1,0 +1,128 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+
+Installing a Net4Care-based server in the Amazon EC2 cloud 
+~~~~~~~~~~~~~~
+
+* Overview
+~~~~~~~~~~~~~~~
+
+  This document describes how to install a Net4Care server in Amazon
+  EC2 (or an EC2-compatible cloud infrastructure) using the Amazon
+  command line tools. 
+
+* Prequisites
+~~~~~~~~~~~~~~~
+
+  You should have an Amazon Web Services (AWS) account. There is an
+  {{{http://aws.amazon.com/free/}AWS Free Usage Tier}} that you can
+  sign up for. If you are signing up, you may want to familiarize
+  yourself with the
+  {{{http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/}EC2
+  Get Started guide}}. Here, we are, however, going to use the command
+  line tools to set up a Net4Care-specific image.
+
+  In the following, we also assume that you have the
+  {{{http://docs.amazonwebservices.com/AWSEC2/latest/UserGuide/SettingUp_CommandLine.html}Amazon
+  EC2 command line tools}} set up locally on your development machine
+  and also that you are working in the EU West zone. Here is a
+  skeleton of a .bashrc file that sets this up:
+
++---+
+export EC2_HOME=<path>/ec2-api-tools/
+export PATH=$PATH:$EC2_HOME/bin
+export EC2_PRIVATE_KEY=~/.ec2/pk-<id>.pem
+export EC2_CERT=~/.ec2/cert-<id>.pem
+export EC2_URL=http://ec2.eu-west-1.amazonaws.com
++---+
+
+* Launching a basic Net4Care server
+~~~~~~~~~~~~~~~
+
+  We will launch a Net4Care-prepared EC2 instance (containing JDK,
+  Maven, and Subversion) on which you should download and install
+  Net4Care.
+
+ You need a keypair to ensure that you can log into the instance. If
+ you do not already have a key, you may create one in a terminal:
+
++---+
+ec2-create-keypair gsg-net4care > gsg-net4care.pem
+chmod 400 gsg-net4care.pem
++---+
+  
+ The instance needs to run in a security group which allows for
+ incoming port 22 (SSH) and 8080 (HTTP) traffic. Again, you may create
+ and configure one from the command line:
+
++---+
+ec2-create-group net4care -d "Net4Care group"
+ec2-authorize net4care -P tcp -p 8080 -s 0.0.0.0/0
+ec2-authorize net4care -P tcp -p 22 -s 0.0.0.0/0
++---+
+
+ Next, find the AMI id of the image:
+
++---+
+ec2-describe-images -a --filter "name=Net4Care*" --filter "is-public=true"
++---+
+
+ Start the instance with the appropriate key and security group:
+
++---+
+ec2-run-instances <ami id> -k gsg-net4care -g net4care -t t1.micro
++---+
+
+ When the instance is running (check with <<<ec2-describe-instances>>>
+ and note the DNS address of the instance), you may log into the
+ instance as the user "ec2-user" using SSH, e.g.,:
+
++---+
+ssh -i gsg-net4care.pem ec2-user@<address>.eu-west-1.compute.amazonaws.com
++---+
+
+* Install Net4Care on the EC2 instance
+~~~~~~~~~~~~~
+
+  You need to {{{./../gettingstarted/download.html}download}} and
+  install Net4Care on the instance. To, e.g., install the current trunk, do:
+
++---+
+svn checkout https://svn.nfit.au.dk/svn/net4care/trunk/src/net4care
+cd net4care
+mvn install
++---+
+
+* Starting the Net4Care
+~~~~~~~~~~~
+
+  You should now start the Net4Care server on the instance:
+
++-----+
+cd n4c_osgi/n4c_receiver
+mvn pax:provision
++-----+
+
+* Test the server
+~~~~~~
+  
+  From a local machine, test that the Net4Care server is accessible (e.g., by doing
+
++-----+
+curl <address>.eu-west-1.compute.amazonaws.com:8080/observation
++-----+
+
+  in a shell. This should return a response indicating that the server
+  can indeed be reached from outside the instance firewall.)
+
+* Terminate the EC2 instance
+~~~~
+  Remember to stop the server when it is not needed:
+
++---+
+ec2-terminate-instances <instance id> 
++---+
+

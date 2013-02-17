@@ -1,0 +1,92 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+
+Unit, Integration, and System tests
+~~~~~~~~~~~~~~
+
+  The framework contains tests at both unit-, integration-, and system
+  level. 
+
+Unit tests
+~~~~~~~~~~~~~~
+
+  The bundle n4c_test contains a large number of unit tests that
+  validate the behaviour of much of the individual units of the
+  system. Most are automated tests that are part of the "mvn test"
+  life-cycle.
+
+  The special package org.net4care.scenario contains a small set of
+  tests that are also learning tests that demonstrate how to configure
+  test doubles so full end-to-end tests can be performed (upload of
+  observations and query of the same) in a simulated environment.
+
+Integration tests (Automatic)
+~~~~~~~~~~~~~~
+
+  
+  The package org.net4care.integration contains test cases that
+  assume a Net4Care server is running on port 8080 on localhost. These
+  test cases are marked by 
+
+  @Category(IntegrationTest.class)
+
+  These test cases are not run as part of the usual maven life-cycle,
+  rather you have to tell maven to run them:
+
++---
+  mvn -P ci install
++---
+
+Integration tests (Manual)
+~~~~~~~~~~~~~~
+
+* Client side
+
+  For manual testing in various scenarios we have developed a home
+  client test application (org.net4care.demo.ManualServerTest) that
+  facilitate a larger set of test cases than the demonstrator programs
+  do.
+
+[./../images/manual-test.jpg]
+
+
+  The client allows contacting various servers, uploading spirometry
+  data, and making queries based upon time interval, and finally
+  validating the output format: JSON, PHMR, or using the graph
+  plotting facilities.
+
+* Server side
+
+  To ease configuring the server side we have developed a non OSGi
+  based server (org.net4care.main.ServerMain) which takes a single
+  parameter. Valid parameter values are: "fast", "sql", or "xds". This
+  parameter defines which implementation of the XDS interface is
+  used. "fast" is a in-memory, non-persistent, data tier. "sql" is a
+  persistent SQLite based data tier (the default of the OSGi based
+  server), and finally "xds" connects via an adapter to a Microsoft
+  open source XDS implementation that runs on a local machine on
+  Computer Science, Aarhus University. Configuring the server for XDS
+  will not work outside the Aarhus University campus network.
+
+
+* Execution
+
+  For windows there are .bat scripts in n4c_test to start both home
+  client as well as server. Please review "run-manual-test.bat" and
+  "run-server.bat". The latter takes a single argument, see above.
+
+  
+System tests 
+~~~~~~~~~~~~
+
+  The applications above can also serve as (almost) end-to-end
+  testing.
+
+  In addition, we have a Android-based weight application running on a
+  Samsung tablet that allows you to enter your weight as a tele
+  observation and upload it to the server. It also allows reviewing
+  the uploaded weights. The source code is available by contacting the
+  Net4Care team at <dev at net4care dot org>. 

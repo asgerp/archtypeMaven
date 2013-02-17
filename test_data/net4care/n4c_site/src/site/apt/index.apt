@@ -1,0 +1,24 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+
+ The Net4Care platform provides the ability to quickly create quality
+ tele-health applications interfacing with HL7 and IHE/XDS. Net4Care
+ features a modular server- and client-side based on OSGi and aims at
+ providing support for a telemedicine software ecosystem.
+
+ A typical deployment scenario is a tele-monitoring scenario in which
+ Net4Care clients are deployed in a gateway in private homes. Medical
+ devices then connect to these gateways and transmit their
+ observations to a Net4Care server. In turn the Net4Care server
+ creates valid clinical HL7 documents, stores them in a national XDS
+ repository, that in turn enables general practitioners and clinical
+ staff to view observations. 
+
+ Use the menus above to explore the site's information resources. To
+ get started, follow the short {{{./gettingstarted/hello.html}Hello, World!  tutorial}}.
+
+ <The Net4Care project is funded by {{{http://www.regionmidtjylland.dk/}The Central Denmark Region}} and {{{http://www.ebst.dk/regionaludvikling/0/}EU}}
+via {{{http://www.caretechinnovation.dk}Caretech Innovation}}.> 

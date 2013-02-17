@@ -1,0 +1,365 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+
+How to define and upload observations
+~~~~~~~~~~~~~~
+
+* Prequisites
+~~~~~~~~~~~~~~~
+  We assume that you have {{{./download.html}downloaded and installed}} Net4Care. 
+
+Terminology
+~~~
+
+  We use the term <<observation>> in the sense of any measured value
+  that some device may measure in the home.
+
+  Examples are
+
+   * Blood pressure, like systolic and diastolic blood pressure a
+     person measures at home.
+
+   * Weight, a person may measure his/her weight on a standard scale
+     and enter the value in some GUI form.
+
+   * Spirometry values, like FVC and FEV1.
+
+
+ 
+Process
+~~~~~~~~~~~~~~~
+
+ Basically, your client application must perform three steps to define
+ and upload its own types of observations.
+
+  [[1]] Define a Java class that implements <ObservationSpecifics>.
+    This class should store the measured values.
+
+  [[2]] Define the context of the observation using the class
+  <StandardTeleObservation>.
+
+  [[3]] Upload the observation to the server using an appropriate
+  implementation of <DataUploader>.
+
+  Below we will outline and examplify each step.
+
+* Step 1: Define the observation class
+~~~~~~~~~~~~~~~
+
+  You have to define a class to store the actual measured values of
+  the observation, and this class has to implement the
+  <ObservationSpecifics> interface. 
+
+  It must also obey the <<JavaBean properties>>: It must have a
+  default constructor, and at least 'get' methods for properties.
+
+
+  Furthermore, the <ClinicalQuantity> class is part of the framework
+  and should be used to store measured values.
+
+  In the code example below, we have defined a minial class to store
+  blood pressure values: the systolic and diastolic blood pressure.
+
++----------------------------------------+
+package com.smb.homeapp;
+
+import java.util.*;
+
+import org.net4care.observation.*;
+
+/** Example of how to define a blood pressure observation
+ * that uses the UIPAC encoding system.
+ * 
+ * @author Net4Care, Henrik Baerbak Christensen, AU
+ */
+public class BloodPressure implements ObservationSpecifics {
+
+  private ClinicalQuantity systolic, diastolic;
+  public BloodPressure(double sys, double dia) {
+    systolic = new ClinicalQuantity(sys, "mm(Hg)","MSC88019","Systolisk BT" );
+    diastolic = new ClinicalQuantity(dia, "mm(Hg)","MSC88020","Diastolisk BT" );
+  }
+  
+  public BloodPressure() { }
+  
+  public ClinicalQuantity getSystolic() {
+    return systolic;
+  }
+  
+  public ClinicalQuantity getDiastolic() {
+    return diastolic;
+  }
+
+  @Override
+  public String getObservationAsHumanReadableText() {
+    return "Systolisk BT: "+systolic + " / Diastolisk BT: "+diastolic;
+  }
+
+  @Override
+  public Iterator<ClinicalQuantity> iterator() {
+    List<ClinicalQuantity> list = new ArrayList<ClinicalQuantity>(2);
+    list.add( systolic ); list.add( diastolic );
+    return list.iterator();
+  }
+  
+  public String toString() {
+    return getObservationAsHumanReadableText();
+  }
+
+}
++----------------------------------------+
+
+ The <ObservationSpecifics> interface requires the class to implement
+ the two methods <getObservationAsHumanReadableText()> and <iterator()>.
+ These are used on the server side to generate the HL7 Personal Health
+ Monitoring Record used for storing the observations.
+
+ The  <getObservationAsHumanReadableText()> should just return a human
+ readable form of the measured values.
+
+ The <iterator()> must return a List of <ClinicalQuantity> instances,
+ one for each measured value of the observation. Some observations,
+ like weight, naturally only contain a single measured value, but
+ often devices sample a number of values. For instance in spirometry,
+ you normally measure both FVC (amount of liters of air in one
+ expiration) and FEV1 (amount of liters of air during the first second
+ of the expiration).
+
+ The <ClinicalQuantity> storage class requires the following
+ parameters to be constructed:
+
++----------------------------------------+
+  /** Construct a read-only PhysicalQuantity that
+   * measures some specific clinical value
+   * denoted by its code in some coding system
+   * (like UIPAC, LOINC, SNOMED CT, etc.).
+   *  
+   * The unit must be UCUM coded,
+   * see the Regenstrief Institute website.
+   * @param value value, e.g. 200
+   * @param unit unit, e.g. "mg"
+   * @param code the code that identifies the clinical
+   * quantity this object represents, e.g. "20150-9"
+   * represents FEV1 in LOINC coding system
+   * @param displayName the human readable name of
+   * the clinical quantity, e.g. "FEV1"
+   */
+  public ClinicalQuantity(double value, String unit,
+      String code, String displayName)
++----------------------------------------+
+ 
+  This may seem like a lot of parameters but the purpose is to be
+  clinically precise about that is measured which means you need to
+  provide the value and the unit (what HL7 denotes PhysicalQuantity /
+  PQ) as well as what clinical value it is you are measuring: the
+  code.
+
+  The value should be obvious but the <unit> should use the standard
+  UCUM strings to denote unit type. Otherwise consumers of your
+  measured values will have a hard time to guess at the unit: for
+  instance how is <liter> defined: "L", "l", "liter", "liters",
+  or "Liter"? You can find the UCUM index at
+
+  {{http://aurora.regenstrief.org/~ucum/ucum.html}}
+
+  Regarding the <code> it identifies what is measured: systolic blood
+  pressure, heart rate, weight, or lung capacity, or another of the
+  zillion things physicians want to measure. Internationally LOINC
+  ({{http://loinc.org}}) or SNOMED CT
+  ({{http://www.medicalclassifications.com/snomedct_dk.html}}) are
+  often used, however, Denmark seems to use UIPAC
+  ({{http://www.iupac.org/}}) quite heavily. A good reference of some
+  obvious home monitoring UIPAC codes can be found in
+
+  {{http://www.medcom.dk/dwn4723}} (it is a PDF though it has no extension)
+
+  in Bilag 1. The codes really are codes (like ""MSC88019") that only
+  makes sense by looking them up in their associated index.
+
+  Finally, the displayName is the officially accepted human readable
+  equivalent of the code. They too can be found in the indeces.
+
+  Note that it is not the ClinicalQuantity itself that defines the
+  actual coding system to use (e.g. LOINC or UIPAC), this is instead
+  defined in the context object, described in the next section.
+  
+
+  <<Important Check>>: A very good idea to validate your
+  ObservationSpecifics class is to test if the class is idem-potent
+  with respect to the serializer (in plain english: if the serializer
+  can convert both to and from string representation.) If a test case
+  similar to the one below runs correctly, your observation class
+  will probably do OK on the server side. If not, and you upload
+  the observation you will probably get weird failures on the server
+  side when the PHMR generator tries to generate a HL7 document for
+  the XDS repository.
+
++----------------------------------------+
+  @Test public void shouldEnsureIdempotencyOfBloodPressure() {
+    StandardTeleObservation bloodpressure = 
+      HelperMethods.defineBloodPressureObservation(FakeObjectExternalDataSource.BIRGITTE_CPR,
+                         134.0, 65.0, "myorg", "rm-01");
+    Serializer serializer = new JacksonJSONSerializer();
+    String onthewireformat = serializer.serialize(bloodpressure);
+    StandardTeleObservation computed = serializer.deserialize(onthewireformat);
+    
+    Iterator<ClinicalQuantity> i = computed.getObservationSpecifics().iterator();
+    ClinicalQuantity item;
+    item = i.next();
+    assertEquals( 134.0, item.getValue(), 0.001 );
+    assertEquals( "mm(Hg)", item.getUnit() );
+    item = i.next();
+    assertEquals( 65.0, item.getValue(), 0.001 );
+    assertEquals( "mm(Hg)", item.getUnit() );   
+  }
++----------------------------------------+
+
+* Step 2: Define the observations' context.
+~~~~~~~~~~~~~~~
+ 
+ Values are measured in a context: for a specific patient, for a
+ specific clinical purpose, by a specific device, etc. This is encoded
+ in a <StandardTeleObservation>. This is a concrete class defined by
+ the Net4Care framework. Often the source code abbreviates it 'the
+ STO'.
+
+ An example of defining a context for blood pressure is shown below.
+
++----------------------------------------+
+    // Create a blood pressure observation for Nancy encoded using UIPAC
+    DeviceDescription device_blood =
+        new DeviceDescription("BloodMeter", "BloodCraft-II", 
+                              "MyOtherCompany", "584216", "69854", "2.1", "1.1");
+    BloodPressure blood = new BloodPressure(140.0, 70.0);
+    bloodpressure_sto = 
+      new StandardTeleObservation(cpr, org_uid, treatment_id, 
+                                  Codes.UIPAC_OID, device_blood, blood );
++----------------------------------------+
+  (From "TestPHMR.java" / method setup().)
+
+
+  The context object (the STO) is defined by the compositional
+  principle: you aggregate device information and measured values.
+
+  The constructor for a STO looks like:
+  
++----------------------------------------+
+  /** Create an observation. 
+   * Precondition: All parameters must NOT be null.
+   * @param patientCPR CPR identity of the patient this
+   * observation is made on
+   * @param organisationUID the unique Net4Care issued
+   * identity of the organization that operates the
+   * device that has made this observation
+   * @param treatmentID Unique ID of the treatment (behandling)
+   * that this observation is part of. Any device set up
+   * in a patients home must be set there for a reason,
+   * namely as part of a treatment. That is a central
+   * (net4care) organization has stewardship/is responsible
+   * for authorizing a treatment - this treatment must
+   * be associated with a unique ID and the teleobservation
+   * must tell it belongs to this by refering to it.
+   * @param codeSystem the coding system using HL7 OID that
+   * is used in all ClinicalQuantities defined in the
+   * ObservationSpecific delegate.
+   * @param deviceDescription the description of the device
+   * this observation stems from.
+   * @param obsspec the object that contains the actual
+   * measurements. */
+  public StandardTeleObservation(String patientCPR, 
+      String organisationUID,
+      String treatmentID,
+      String codeSystem,
+      DeviceDescription deviceDescription,
+      ObservationSpecifics obsspec )
++----------------------------------------+
+
+  The CPR of the person these values are measured on should be
+  obvious.
+
+  The codeSystem defines which coding system that all
+  ClinicalQuantities in the associated ObservationSpecifics instance
+  are using, like e.g. LOINC or UIPAC. It is a string value that must
+  equal the HL7 Object Identifier (OID) for that particular code
+  system. You can find OIDs using HL7's OID registry at
+  {{http://www.hl7.org/oid/index.cfm}}. For instance if you search for
+  LOINC by entering 'LOINC' in the 'Symbolic Name' field of the web
+  form, you will find that the OID is
+
+----
+2.16.840.1.113883.6.1 
+---
+ so, this is the parameter to pass if your clinical quantities are
+ coded using LOINC.
+
+ Unfortunately, UIPAC is not defined in HL7 so we have used our
+ net4care root OID to define a (temporary) OID for UIPAC
+
+---
+UIPAC:	2.16.840.1.113883.3.1558.1.1
+---
+
+ Instead of hardcoding these as strings in your code, use the symbolic
+ names defined in Java class <org.net4care.observation.Codes>.
+
+ <organisationUID> is a Net4Care assigned OID of the organization that
+ has <stewardship> of the data - the organization that is legally and
+ clinically bound to ensure the measured data is properly stored,
+ maintained and handled. Again, look into
+ <org.net4care.observation.Codes> for the present list of
+ organizational OIDs. For instance, for Skeyby sygehus we have defined
+ a OID: 2.16.840.1.113883.3.1558.10.6.1.
+
+ <treatmentID> is the identity used internally in the stewarding
+ organization's Electronic Patient Record (EPR) or diagnosis system
+ for the diagnosis that requires these observations to be made. For
+ instance, you must measure your blood pressure if you have a heart
+ disease diagnosis - the ID of this diagnosis must be referenced in
+ the STO.
+
+ (For testing purposes, you may invent your own IDs :)
+
+ The final piece of the puzzle is the <DeviceDescription>. The
+ constructor dictates
+
++----------------------------------------+
+/** Construct a description of a device. (Most of
+   * these parameters are deduced from the PHMR Draft
+   * section 3.3.1 "Medical Equipment".
+   * @param type type of apparatus (what does it measure)
+   * @param model the model name
+   * @param manufacturer the organization manufacturing the device
+   * @param serialId serial id of this device
+   * @param partNumber part id if any
+   * @param hardwareRevision revision of the hardware
+   * @param softwareRevision revision of the software
+   */
+  public DeviceDescription(String type, String model, String manufacturer,
+      String serialId, String partNumber, String hardwareRevision,
+      String softwareRevision)
++----------------------------------------+
+
+* Step 3: Upload the STO
+~~~~~~~~~~~~~~~
+
+ Now the observed values are stored in the context object, and are
+ ready for upload. This is very simple as you simply use the
+ <uploader> to do just that.
+
++----------------------------------------+
+    // Upload the STO  to the N4C cloud
+    FutureResult result = uploader.upload(sto);
+    result.awaitUninterruptibly();  
+    assertTrue( result.isSuccess() );
++----------------------------------------+
+
+ The <uploader> must of course be defined. Please refer to the
+ <Getting Started/Configuring the Architecture> tutorial on how to do
+ that. 
+
+ You can also review the learning tests in
+ <org.net4care.scenario.TestUploadAndStorage> in the n4c_osgi/n4c_test
+ folder.

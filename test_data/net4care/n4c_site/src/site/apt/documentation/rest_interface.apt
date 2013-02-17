@@ -1,0 +1,182 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+
+REST interface
+~~~~~~~~~~~~~~
+
+
+* WARNING
+
+
+  <<THE INFORMATION BELOW IS LOW LEVEL DOCUMENTATION OF THE REST
+  INTERFACE AND SHOULD NOT BE USED DIRECTLY (AS THERE IS
+  NO CHECKING ON THE SERVER SIDE). INSTEAD USE THE JAVA
+  CLASSES PROVIDED FOR CLIENT SIDE INTERACTION WITH THE
+  SERVER>>
+
+
+* Introduction
+~~~~~~~~~~~~~~~
+
+	The Net4Care framework provides a small REST based interface. 
+	It has some simple functionality for sending clinical observations 
+	and for querying stored observations on a Net4Care 	server instance.
+	
+* Starting a server instance
+~~~~~~~~~~~~~~~
+
+  [[1]] Make sure you have issued:
+
++---
+mvn install
++---
+
+	in the root folder of the Net4Care distribution. 
+
+  [[2]] Change to folder: n4c_osgi/n4c_receiver.
+
+  [[3]] Start the server by command:
+
++---
+mvn pax:provision
++---
+
+  Maven and Felix will drown you in information, but you should be able
+  to see the 
+
+---
+Net4Care observation server started on /observation
+---
+
+  somewhere in the mess.
+
+  [[4]] To verify that the server is up and running go to 
+				{{{http://localhost:8080/observation} http://localhost:8080/observation}}. 
+        You should now see a page stating the servers version and some documentation 
+        about the REST interface.
+
+
+* Sending an observation
+~~~~~~~~~~~~~~~
+
+	In order to upload an observation to the server instance send a POST request to http://localhost:8080/observation.
+	The body of the POST request must be a StandardTeleObservation serialized in JSON format. An example:
+
+---
+POST /observation HTTP/1.1
+User-Agent: Java/1.6.0_23
+Host: localhost:8080
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+Content-type: application/x-www-form-urlencoded
+Content-Length: 825
+
+{
+    "patientCPR": "251248-4916",
+    "organizationUID": "org.net4care.org.mycompany",
+    "treatmentID": "treatment-id",
+    "time": 1338386271775,
+    "codeSystem": "2.16.840.1.113883.6.1",
+    "deviceDescription": {
+        "type": "Spirometer",
+        "model": "SpiroCraft-II",
+        "manufacturer": "MyCompany",
+        "serialId": "584216",
+        "partNumber": "69854",
+        "hardwareRevision": "2.1",
+        "softwareRevision": "1.1"
+    },
+    "observationSpecifics": [
+        "com.smb.homeapp.Spirometry",
+        {
+            "fvc": {
+                "value": 0.1,
+                "unit": "L",
+                "code": "19868-9",
+                "displayName": "FVC"
+            },
+            "fev1": {
+                "value": 0.01,
+                "unit": "L",
+                "code": "20150-9",
+                "displayName": "FEV1"
+            },
+            "observationAsHumanReadableText": "Measured: FVC:0.1 L / FEV1:0.01 L"
+        }
+    ],
+    "comment": "",
+    "deviceDescriptionAsHumanReadableText": "Device properties: Type: Spirometer Model: SpiroCraft-II Manufacturer: MyCompany Serial No: 584216 Part No: 69854 Hardware Revision: 2.1 Software Revision: 1.1."
+}
+---
+
+* Querying for observations
+~~~~~~~~~~~~~~~
+
+	You can query the server using a GET request. The input URL must be on the form:
+
+---
+GET /observation?cpr=<cpr>&intervalstart=<timestamp>&intervalend=<timestamp>&codelist=<codelist>&codesystem=<codesystem>&QueryType=<querytype>&format=<format> HTTP/1.1
+---
+
+  where the request parameters should be interpreted as:
+  
+  [[A]]<<cpr>> is the patients social security number.
+  
+  [[B]]<<intervalstart>> is the beginning of the time interval to query for.
+			 \<timestamp\> is a UNIX timestamp in milliseconds.
+  
+  [[C]]<<intervalend>> is the end of the time interval to query for.
+  
+  [[D]]<<codelist>> is the list of clinical codes to query for.
+			 \< codelist \> is in the JSON format |c1|c2|...|cn| where ci
+       is a valid code according to the codesystem.
+  
+  [[E]]<<codesystem>> specifies which code system the <<codelist>> is
+  using, using its HL7 OID. It could be LOINC or UIPAC or another
+  supported system. 
+
+  [[F]]<<querytype>> Specifies the type of query. Currently (argust 2012) 
+       there are 2 types of queries that your can use:
+
+         *<<PersonTimeQuery>> Query a person in a specific time interval.
+           Here the <<cpr>>, <<intervalstart>> and <<intervalend>> 
+           parameters are mandatory.
+
+         *<<PersonTimeTypeQuery>> Query a person in a specific time
+          interval and query for a specific codesystem (e.x. LOINC)
+          and a specific list of codes.
+          In this query the <<cpr>>, <<intervalstart>>, 
+          <<intervalend>>, <<codesystem>> and <<codelist>>
+          parameters are mandatory.
+
+  [[G]]<<format>> The return format. Currently there are 3 formats 
+       available: 'application/json', 'application/graph' 
+       and 'application/xml'.
+
+ For a description of code systems and codes, please refer to our
+ tutorial on 'defining observations'.
+
+ If you do not include all the above parameters the server will
+ properly fail executing the request!
+
+ Here is a concrete example of a query request and the matching response:
+
+---
+GET
+/observation?cpr=251248-4916&intervalend=1346140080000&intervalstart=1346053680000&codesystem=2.16.840.1.113883.6.1&codelist=|19868-9|20150-9|&querytype=PersonTimeTypeQuery&format=application%2Fjson HTTP/1.1
+User-Agent: Java/1.6.0_23-ea
+Host: localhost:8082
+Connection: keep-alive
+X-Forwarded-For: 127.0.0.1
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+Access-Control-Allow-Origin: *
+Transfer-Encoding: chunked
+Server: Jetty(6.1.x)
+
+["{\"patientCPR\":\"251248-4916\",\"organizationUID\":\"org.net4care.org.mycompany\",\"treatmentID\":\"treatment-id\",\"time\":1327223534508,\"codeSystem\":\"2.16.840.1.113883.6.1\",\"deviceDescription\":{\"type\":\"Spirometer\",\"model\":\"SpiroCraft-II\",\"manufacturer\":\"MyCompany\",\"serialId\":\"584216\",\"partNumber\":\"69854\",\"hardwareRevision\":\"2.1\",\"softwareRevision\":\"1.1\"},\"observationSpecifics\":[\"com.smb.homeapp.Spirometry\",{\"fvc\":{\"value\":2.0,\"unit\":\"L\",\"code\":\"19868-9\",\"displayName\":\"FVC\"},\"fev1\":{\"value\":1.2,\"unit\":\"L\",\"code\":\"20150-9\",\"displayName\":\"FEV1\"},\"observationAsHumanReadableText\":\"Measured: FVC:2.0 L / FEV1:1.2 L\"}],\"comment\":\"\",\"deviceDescriptionAsHumanReadableText\":\"Device properties: Type: Spirometer Model: SpiroCraft-II Manufacturer: MyCompany Serial No: 584216 Part No: 69854 Hardware Revision: 2.1 Software Revision: 1.1.\"}","{\"patientCPR\":\"251248-4916\",\"organizationUID\":\"org.net4care.org.mycompany\",\"treatmentID\":\"treatment-id\",\"time\":1338390318803,\"codeSystem\":\"2.16.840.1.113883.6.1\",\"deviceDescription\":{\"type\":\"Spirometer\",\"model\":\"SpiroCraft-II\",\"manufacturer\":\"MyCompany\",\"serialId\":\"584216\",\"partNumber\":\"69854\",\"hardwareRevision\":\"2.1\",\"softwareRevision\":\"1.1\"},\"observationSpecifics\":[\"com.smb.homeapp.Spirometry\",{\"fvc\":{\"value\":0.1,\"unit\":\"L\",\"code\":\"19868-9\",\"displayName\":\"FVC\"},\"fev1\":{\"value\":0.01,\"unit\":\"L\",\"code\":\"20150-9\",\"displayName\":\"FEV1\"},\"observationAsHumanReadableText\":\"Measured: FVC:0.1 L / FEV1:0.01 L\"}],\"comment\":\"\",\"deviceDescriptionAsHumanReadableText\":\"Device properties: Type: Spirometer Model: SpiroCraft-II Manufacturer: MyCompany Serial No: 584216 Part No: 69854 Hardware Revision: 2.1 Software Revision: 1.1.\"}"]
+---

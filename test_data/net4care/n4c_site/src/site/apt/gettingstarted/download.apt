@@ -1,0 +1,99 @@
+ -----
+ The Net4Care Ecosystem Framework
+ -----
+ Net4Care
+ -----
+
+Downloading a source distribution
+~~~~~~~~~~~~~~
+  The following source distributions are available:
+
+*--------------+----------------+----------------:
+|| Version || ZIP file || Subversion branch |
+*--------------+----------------+----------------:
+| 0.1-SNAPSHOT | {{{./../../download/net4care-0.1-SNAPSHOT.zip}net4care-0.1-SNAPSHOT.zip}}    | Release0.1 |
+*--------------+----------------+----------------:
+| 0.2-SNAPSHOT | {{{./../download/net4care-0.2-SNAPSHOT.zip}net4care-0.2-SNAPSHOT.zip}}    | Release0.2 |
+*--------------+----------------+----------------:
+| 0.3-SNAPSHOT | {{{./../download/net4care-0.3-SNAPSHOT.zip}net4care-0.3-SNAPSHOT.zip}}    | Release0.3 |
+*--------------+----------------+----------------:
+
+  Please bear in mind that this is work in progress and there will be
+  aspects in which there may be inconsistencies and bugs. Any comments
+  and feedback is very welcome!
+
+  Anonymous Subversion access is possible. To access the very latest
+  version checkout from the URL:
+
++--
+http://svn.nfit.au.dk/svn/net4care/trunk/src/net4care
++--
+
+  To access a specific version, checkout from the URL:
+
++--
+http://svn.nfit.au.dk/svn/net4care/branches/<branch>
++--
+
+ (Here, <<<<branch>>>> is one of the branches from the table above.)
+
+Building the source distribution
+~~~~~~~~~~~~~~
+
+  The Net4care framework is based upon Java and (Apache Felix)
+  OSGi. To build, you need to have {{{http://maven.apache.org}Apache
+  Maven}} installed to build Net4Care.
+
+  Be sure that your Maven version is 3.x or later (We have experienced
+  that some Linuxes by default install Maven 2.x that fail to compile
+  the code.)
+
+  Unzip the distribution in some suitable directory, change working
+  directory to the root directory (named: net4care), and, using Maven,
+  execute the following in a shell:
+
++-----
+  mvn install
++-----
+
+  This will build, run tests, and install (in the local Maven
+  repository), the Net4Care bundles and support for creating new
+  projects.
+
+  The distribution has been tested on Windows 7, Ubuntu 12 LTS
+  (desktop and server edition), and Mac OS X.
+
+Using Eclipse
+~~~~~~~~~~~~~~
+
+  If you want to experiment and develop
+  using {{{http://www.eclipse.org}Eclipse}}, you can create Eclipse
+  project files for the project using
+
++---
+  mvn eclipse:eclipse
++---
+
+  This has been tested on Eclipse Indigo. As each bundle is a separate
+  Eclipse project, we recommend using the "Working set" feature to group
+  these projects.
+
+  If things gets messed up, you can try removing the project files
+  ("mvn eclipse:clean") and then generate them again.
+
+
+
+Moving on
+~~
+
+   First, read the {{{./hello.html}Hello, World!}} tutorial to view
+  and execute a simple example of using the Net4Care framework for
+  uploading and querying simple tele observations.
+
+  Next, move on with the {{{./learning.html}Learning Net4Care}}
+  tutorial and associated tutorials under the "Application
+  Development" menu.
+
+  Finally, the "Framework Development" and "Documentation" menu have
+  links to more detailed information.
+

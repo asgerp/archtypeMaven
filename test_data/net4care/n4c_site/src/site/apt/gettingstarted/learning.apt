@@ -1,0 +1,569 @@
+The Architecture in One Minute
+~~~
+
+  The Net4Care ecosystem is a classic <three-tier architecture> (for
+  more detail and diagrams, consult
+  {{{../documentation/architecture.html} the architecture
+  documentation}}):
+
+  * The <Net4care home application tier> is the software running in the device in
+  the home. It uploads clinical observations to, and requests
+  observations from :
+
+  * The <Net4Care server tier> is software that accepts clinical
+  observations and converts them to HL7 documents that are stored in:
+
+  * The <XDS repository tier> interfaces to an XDS repository and
+    index that allows access to XDS-enabled data sources. The goal is
+    to eventually provide a national, Danish set of repositories that
+    are accessible by all GP and EPR systems.
+
+  
+Learning the Net4Care Framework
+~~~
+
+  At present, the framework provides the following learning tests and
+  demonstrators:
+
+  * <Learning tests> and unit tests of the framework itself. The primary
+    learning test is in the source file
+    n4c_osgi/n4c_test/src/test/java/org/net4care/scenario/TestUploadAndStorage,
+    that creates a clinical spirometry observation, uploads it to a
+    (simulated) server, and finally retrieves the observation again
+    using a query.
+ 
+  * The <SwingSpirometry> demonstrator in folder
+    n4c_example/SwingSpirometry that comes with a user interface in
+    which you make a spirometry measurement and uploads it to a local
+    server. You can also request all measured observations back again
+    in a text format.
+
+  * The <Anticoagulation> demonstrator in folder
+    n4c_example/Anticoagulation that basically does the same as above
+    except it demonstrates the use of the graph plotting bundle when
+    you query for old measurements.
+
+ We advice you start by looking at the SwingSpirometry demonstrator
+ as it only defines the client side aspect which is the intended use
+ case of the Net4Care framework. The Learning Tests are somewhat more
+ complex because they also configure the server side aspects.
+  
+
+* SwingSpirometry demonstrator
+~~~
+  
+  This demonstrator defines a simple HTTP server (Jetty-based) and a
+  (really ugly but usable) Java Swing client, both deployed on local
+  host.
+
+** How to run
+
+  [[1]] Make sure you have issued 
+
++---
+mvn install
++---
+
+         in the root folder of the Net4Care distribution. (This will
+         compile, test, and install bundles locally.)
+
+  [[1b]] Change to folder: n4c_example/SwingSpirometry/ and issue
+  another install:
+
++---
+mvn install
++---
+	which will further install compile, test and install bundles
+	for the specific spirometry application.
+
+  [[2]] We will next start a simple Net4Care server on the local
+  machine.  We use the standard Net4Care server so change to folder:
+  n4c_osgi/n4c_receiver from the root of the download.
+
+  [[3]] Start the server by command
+
++---
+mvn pax:provision
++---
+
+  Maven and Felix will drown you in infomation, but you should be able
+  to see the 
+
+---
+____________________________
+Welcome to Apache Felix Gogo
+
+g! [INFO] Started jetty 6.1.x at port(s) HTTP:8080 HTTPS:8443
+---
+
+  somewhere in the mess.
+
+  [[4]] Open another shell and change to folder
+  n4c_example/SwingSpirometry/n4c_client.
+
+  [[5]] Start the client using
+
++---
+mvn exec:java -Dexec.mainClass=com.smb.client.HomeMonitorApp
++---
+
+  and the GUI should appear. (On windows there is a batch script
+  "run-it.bat" that contains the above commandline.)
+
+** How to use
+
+ The home client GUI looks like this:
+
+[./../images/spiro-client-demo.jpg]
+
+ As there is absolutely no validation code present be sure to follow
+ the steps below.
+
+ [[1]] Press the 'Take spirometry measurement...' button. This
+ simulates that the patient (in this case 'Nancy Berggren' as
+ indicated at the top label) blows into the spirometry device which
+ transfers two values (FVC = full (lung) volume capacity i Liters, and
+ FEV1 = volume during 1st second) to the software which is then
+ displayed in the labels below (4.0 and 3.3 in the figure
+ above). <Note: These values are just generated randomly by the
+ demonstrator and will produce clinically invalid values from time to time.>
+
+
+ [[2]] Push the 'Transfer to Net4Care Server'. If you have the shell
+ with the server visible, you will see text output as the server
+ receives the observation.
+
+ [[3]] Push the 'Retrieve data from server' button to retrieve all
+ produced observations as text entries in the lower text field. Only
+ those relevant for the choosen patient are shown.
+
+ [[4]] You can push the '[change ptt]' button to toggle between the
+ 3-4 only known patients in the system at the moment.
+
+
+ [[5]] In folder n4c_clinician/src/main/resources there is a
+  "index.html" web page that contains a simple JavaScript which can
+  query for observations using the raw REST protocol of the Net4Care
+  server, and plot a graph of measured values.
+
+[./../images/spiro-clinician-demo.jpg]
+
+** Technical stuff
+
+  The uploaded observations as well as HL7 documents are stored in the
+  SQLite database "xds.db" in folder
+  n4c_osgi/n4c_receiver/runner. You can use the SQLite database
+  commandline tool to inspect tables, as outlined in the {{{../faq.html}FAQ}}. 
+
+** Code walkthrough
+   
+  The code below is from revision 938 of HomeMonitorApp.java in the
+  subversion repository.
+
+  The client side framework objects are instantiated and configured by
+  dependency injection in the constructor. The central code is:
+
++---
+    serializer = new JacksonJSONSerializer();    
+    try {
+      //dataUploader = new StandardDataUploader(serializer, new HttpConnector("https://localhost:8443/observation"));
+      dataUploader = new StandardDataUploader(serializer, new HttpConnector("http://localhost:8080/observation"));
+    } catch (MalformedURLException e) {
+      e.printStackTrace();
+    }
++---
+  This configures the 'uploader' with its serializer and connector to
+    the server. This configuration is explained in detail in
+    {{{../developing/configure.html} Configuring the framework}}.
+
+ The upload is handled by the following code in method <<<createUploadDataPanel>>>:
+
++---
+    JButton uploadButton = new JButton("Transfer to Net4Care server" );
+    uploadButton.addActionListener( new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        Spirometry sp = new Spirometry( fvc, fev1 );
+        DeviceDescription devdesc = new DeviceDescription("Spirometry", "MODEL1", "Manufac1", "1", "1", "1.0", "1.0");
+        StandardTeleObservation sto = new StandardTeleObservation(ptCPR, "MyOrgID", "myTreatmentId", Codes.LOINC_OID, devdesc, sp );
+        FutureResult result;
+        try {
+          result = dataUploader.upload(sto);
+          result.awaitUninterruptibly();
+        } catch (IOException e1) {
+          e1.printStackTrace();
+        }
+      }
+    }); 
++---
+
+  Here, an observation (StandardTeleObservation sto) is created by
+  composing organizational information (patient id and others) with
+  device information (DeviceDescription devdesc) and finally the
+  actual spirometry readings (Spirometry sp). Further detail can be
+  found in {{{../developing/observation.html}Defining observations}}.
+
+  The 'dataUploader' defined previously is used to upload the
+  observation to the observer. 
+
+  Finally, observations can be queried from the server as shown by the
+  following code from method <<<queryServerAndPutIntoOutputField>>>:
+
++---
+    Query query; QueryResult res = null;
+    List<StandardTeleObservation> obslist;
+
+    // Query for the last 10 days
+    long now = System.currentTimeMillis();
+    long tendaysago = now - 1000L* 3600L * 24L;
+    query = new QueryPersonTimeInterval(ptCPR, tendaysago, now);
+    // System.out.println("Formulated query: "+query);
+    try {
+        res = dataUploader.query(query);
+        res.awaitUninterruptibly();
+    } catch ( Exception e ) {
+      e.printStackTrace();
+    }
+    obslist = res.getObservationList();
++---
+
+  Here we create a query for the given patient in a given time
+  interval (10 days back in time) and again use the previously
+  configured dataUploader to execute the query. Once executed, we
+  retrieve a list of all observations using the getObservationList()
+  method. This list is then parsed and written in the text box (this
+  code is not shown here.)
+
+** Hints when playing around with the code
+
+  Maven does not recompile as part of the 'mvn exec:java' command so be sure to
+  invoke 'mvn -q compile' before you execute the HomeMonitorApp every time you change anything.
+
+* Learning tests
+~~~
+
+** How to run
+
+  This is simple, as you simply go to folder n4c_osgi and issue
+
++---
+mvn -q test
++---
+
+ to see the test cases running
+
++---
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running org.net4care.graph.TestGraph
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.546 sec
+Running org.net4care.phmr.TestPHMR
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.031 sec
+Running org.net4care.scenario.TestServerQueryScenario
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.203 sec
+Running org.net4care.scenario.TestStandardHTTPServlet
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.19 sec
+Running org.net4care.scenario.TestStorage
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.625 sec
+Running org.net4care.scenario.TestUploadAndStorage
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 sec
+Running org.net4care.scenario.TestUploadScenario
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 sec
+Running org.net4care.serializer.TestServerSerializer
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.031 sec
+Running org.net4care.test.common.TestTeleObservation
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 sec
+Running org.net4care.test.common.TestUtility
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 sec
+
+Results :
+
+Tests run: 42, Failures: 0, Errors: 0, Skipped: 0
++---
+
+** Code walkthrough
+
+  There are a lot of test cases which mostly are unit tests, but one
+  of them serves as a learning test. You will find it in
+
++--
+n4c_osgi\n4c_test\src\test\java\org\net4care\scenario\TestUploadAndStorage.java
+n4c_osgi\n4c_test\src\test\java\org\net4care\scenario\CommonTestCases.java
++--
+
+ The former configures the testing environment and the latter contains
+ test cases.
+
+ With regards to the setup of the testing environment, please review
+ the <<<setup>>> method in TestUploadAndStorage.java. Excerpts from this
+ method that illustrate the client side setup are shown below (version 927)
+
++---
+  @Before
+  public void setup() throws Net4CareException {
+    // Common roles - both server and client side must of course agree
+    // upon the way StandardTeleObservations are serialized...
+    serializer = new JacksonJSONSerializer();
+
+   [...]
+
+    // Client side roles
+    // -- use a connector to the server that is simply method call
+    connector = new LocalSynchroneousCallConnector( receiver );
+    // -- and configure the data uploader (forwarder) with
+    // these delegates.
+    uploader = new StandardDataUploader( serializer, connector ); 
+ }
++--
+
+  The only change from the configuration in the SwingSpirometry
+  example is the use of a 'local call connector' that transfers
+  observations by local in-memory method calls instead of HTTP
+  request-reply pairs.
+
+
+  An example of an upload is found in the helper method in
+  CommonTestCases.java:
+
++--
+  void createAndUploadASpirometryObservation(long timestamp) throws IOException {
+    // Create an observation
+    sto = HelperMethods.defineSpirometryObservation( FakeObjectExternalDataSource.NANCY_CPR, 3.7, 3.42);
+    sto.setTime(timestamp);
+    
+    // Upload the STO  to the N4C cloud
+    FutureResult result = uploader.upload(sto);
+    result.awaitUninterruptibly();  
+    assertTrue( result.isSuccess() );
+  }
++--
+
+  The definition of the StandardTeleObservations, sto, is encapsulated
+  in the helper method, but of course follows the same structure as in
+  the SwingSpirometry demonstrator.
+
+  For an example of a query, you should look into
+
++---
+n4c_osgi\n4c_test\src\test\java\org\net4care\scenario\TestServerQueryScenario.java
++--
+
+  Here different examples of queries possible from the client are
+  tested. As one example, the following code shows two queries, one on
+  (person id, timeinterval), and the second on (person id,
+  timeinterval, code list), in the method
+  <<<shouldRequestBasedUponTypeOfObservation>>>:
+
++--
+ @Test
+  public void shouldRequestBasedUponTypeOfObservation() throws IOException, Net4CareException {
+    StandardTeleObservation computed1, computed2, computed3;
+
+
+    Query query; QueryResult res;
+    List<StandardTeleObservation> obslist;
+
+    // First - query around the first time "now"
+    query = new QueryPersonTimeInterval(FakeObjectExternalDataSource.NANCY_CPR, 
+        now-20, twentySecondsLater+20);
+    res = uploader.query(query);
+    res.awaitUninterruptibly();
+
+    obslist = res.getObservationList();
+    assertEquals( 3, obslist.size() );
+
+    computed3 = obslist.get(2);
+    assertEquals ( nancy_blood1.toString(), computed3.toString());
+
+    // Query only Spirometry values in LOINC
+    query = new QueryPersonTimeIntervalType(FakeObjectExternalDataSource.NANCY_CPR, 
+        now-20, twentySecondsLater+20, Codes.LOINC_OID,  "|20150-9|19868-9|" );
+    res = uploader.query(query);
+    res.awaitUninterruptibly();
+
+    obslist = res.getObservationList();
+    assertEquals( 2, obslist.size() );
+
+    [more asserts on the returned list of observations here]
++---
+
+  The first query is a <<<QueryPersonTimeInterval>>> that fetches all
+  observations on a given person in a given timeinterval. The second
+  query is a <<<QueryPersonTimeIntervalType>>> that in addition
+  filters on the clinical codes wanted. The part <Codes.LOINC_OID,
+  "|20150-9|19868-9|"> define that only FVC and FEV1 observations are
+  requested. For more detail on clinical codes, refer to
+  {{{../developing/observation.hml}Defining observations}}.
+
+
+
+* Anticoagulation demonstrator
+~~~
+  
+	This demonstrator can be viewed as an extension of the SwingSpirometry 
+	example. It has the same capability regrading to sending and receiving 
+	clinical measurements, but the server-response is displayed on a graph. 
+	The graph functionality is available as a plug-in in the Net4Care framework.
+
+** How to run
+
+  [[1]] Make sure you have issued:
+
++---
+mvn install
++---
+
+	in the root folder of the Net4Care distribution. 
+
+  [[1b]] Change to folder: n4c_example/Anticoagulation/ and issue
+  another install:
+
++---
+mvn install
++---
+
+  [[2]] Change to folder: n4c_osgi/n4c_receiver.
+
+  [[3]] Start the server by command:
+
++---
+mvn pax:provision
++---
+
+  Maven and Felix will drown you in infomation, but you should be able
+  to see the 
+
+---
+Net4Care observation server started on /observation
+---
+
+  somewhere in the mess.
+
+	[[4]] Open another shell and change to folder
+	n4c_example/Anticoagulation/client.
+
+  [[5]] Start the client using:
+
++---
+mvn exec:java -Dexec.mainClass=com.akc.client.HomeMonitorApp
++---
+
+	and the GUI should appear.
+
+** How to use
+
+	The home client GUI looks like this:
+
+[./../images/anticoa-client-demo.jpg]
+
+	As there is absolutely no validation code present be sure to follow
+	the steps below.
+
+	[[1]] Press the "Take anticoagulation measurement..." button. 
+	This simulates that the patient (in this case 'Nancy Berggren' 
+	as indicated at the top label) uses a Coaugla-meter device which
+	transfers one value (INR - The bloods anticoagulation factor) 
+	to the software, which is then displayed in the field 
+	"Anticoagulation" below (1.8 in the figure above). It will 
+	also generate a value in the field "Tablets". This value 
+	simulates the patients pill-intake of the day (1.9 in the 
+	figure above). Because the graph shows the measurements 
+	chronological, a time-stamp will also be generated.  <Note: 
+	These values are just generated randomly by the demonstrator 
+	and will produce clinically invalid values from time to time.>
+
+
+	[[2]] Push the "Transfer to Net4Care Server". If you have the shell
+	with the server visible, you will see text output as the server
+	receives the observation.
+
+	[[3]] Push the "Retrieve data from server" button to retrieve all
+	produced observations. The retrieved data will be shown on the graph below. Only
+	those relevant for the choosen patient are shown.
+
+	[[4]] You can push the "[change ptt]" button to toggle between the
+	3-4 only known patients in the system at the moment.
+
+
+** Technical stuff
+
+	The uploaded observations as well as HL7 documents are stored in the
+	SQLite database "xds.db" in folder
+	n4c_osgi/n4c_receiver/runner. You can use the SQLite database
+	command-line tool to inspect tables, as outlined in the {{{../faq.html}FAQ}}. 
+
+** Code walkthrough
+   
+	The code below is from revision 1122 of HomeMonitorApp.java 
+	(in the com.akc.client package) in the subversion repository.
+
+	Sending and receiving observations works exactly as in the 
+	SwingSpirometry example above. The only difference is which 
+	type of measurements are send and which type of device is used:
+
++--- 
+Anticoagulation sp = new Anticoagulation( INR, numOfTablets );
+DeviceDescription devdesc = new DeviceDescription("Anticoagulation", "CoaguCheck-XS", "Roche", "1", "1", "1.0", "1.0");
++---
+
+	The new part is the use of a Net4Care plug-in, namely the graph plug-in.
+	To use this plug-in you will need to import the package:
+
++---
+import org.net4care.graph.*;
++---
+
+	After declaring and initializing a graph, i.e.:
+
++---
+private StandardObservationGraph outputGraph;
+...
+public HomeMonitorApp() {
+	outputGraph = new StandardObservationGraph();
+	...
+}
++---	
+
+	You can use the function getGraphComponent() in 
+	StandardObservationGraph to add a graph to your 
+	GUI container:
+
++---
+Box guiContainer = new Box( BoxLayout.Y_AXIS ); 
+guiContainer.add(outputGraph.getGraphComponent());
++---
+
+	Now you can easily add data of the type 
+	List\<StandardTeleObservation\> to the graph:
+
++---
+List<StandardTeleObservation> obslist;
+...
+outputGraph.plotData(obslist);
++---
+
+	Issuing the command plotData(List\<StandardTeleObservation\> obslist) 
+	will update the graph to show the data in obslist.
+
+
+Advanced demonstrators
+
+  The <<<ManualServerTest>>> program in the n4c_test bundle is a
+  relatively advanced client program that allows you to experiment
+  with upload and query.
+
+  As an alternative to the OSGi based Net4Care server, there is a
+  native Java variant of the server, that you can find in
+  <<<ServerMain>>> also in the n4c_test bundle.
+
+  On Windows there are two batch scripts (run-server and
+  run-manual-test) that start these two demonstrators.
+
+  First, start the server. You have to provide a command-line argument
+  that is either "fast", "sql", or "xds". Based upon this the server
+  will utilize the in-memory implementation of the storage interfaces
+  ("fast"), the SQLite based one ("sql"), or the adapter to the
+  Codeplex XDS ("xds").
+
+  Next, run the client.
+  

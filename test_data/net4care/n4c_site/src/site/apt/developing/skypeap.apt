@@ -1,0 +1,885 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+ 
+Creating Skype applications
+
+  In this section we describe how to write skype application code from scratch. 
+  
+%{toc|fromDepth=1|toDepth=4}
+
+* Tutorial 1 - Login step-by-step
+~~~~~~~~~~~~~~
+
+ Here we will present how simple it is to log on to Skype from within a java 
+ application presuming successful {{{../gettingstarted/skype.html#Integrating_Skype_in_your_Net4Care_installation}Skype setup}} 
+ making skype available through maven dependencies.
+ 
+** Setup project
+ 
+*** Using maven only
+ 
+  Inside your workspace type:
+ 
++------------------------------------------------------------+
+ mvn archetype:generate -DgroupId=n4c.skype -DartifactId=my.skype -Dversion=1.0-SNAPSHOT -DarchetypeArtifactId=maven-archetype-archetype
++------------------------------------------------------------+
+ 
+  This generates a new folder called my.skype containg a valid maven project.
+  
+  Inside the newly created my.skype folder create folder src/main/java if it does not already exist.
+  
+  Now add the n4c_skype dependency to my.skype/pom.xml making it look similar to the following:
+
++------------------------------------------------------------+
+
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>n4c.skype</groupId>
+  <artifactId>my.skype</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <name>Archetype - my.skype</name>
+  <url>http://maven.apache.org</url>
+  
+   <dependencies>
+	<dependency>
+		<groupId>org.net4care</groupId>
+		<artifactId>n4c_skype</artifactId>
+		<version>0.2-SNAPSHOT</version>
+	</dependency>
+  </dependencies>
+</project>
+
++------------------------------------------------------------+
+
+  There may be difference in your pom and the one above but it is just the dependency part that is important.
+  
+  Skip the Using eclipse part and jump to {{{Creating_the_code}Creating the code}}.
+ 
+*** Using eclipse
+ 
+ In eclipse create a new project: 
+ 
++------------------------------------------------------------+
+	file->New->Project->Other->Maven->Maven Project
++------------------------------------------------------------+
+  
+  * If present, select the 'simple' option and press next
+
+  * Type Group id: n4c.skype and Artifact id: my.skype
+
+  * Press Finish
+
+  []
+  
+  
+  Now a new project called 'my.skype' should appear. Unfold it and open pom.xml
+  with eclipse xml editor (usually double click will do but if for instance 
+  android SDK is installed, the android XML might have precedence). Inside the 
+  pom file add the n4c_skype dependence:
+ 
++------------------------------------------------------------+  
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>n4c.skype</groupId>
+  <artifactId>my.skype</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  
+  <dependencies>
+	<dependency>
+		<groupId>org.net4care</groupId>
+		<artifactId>n4c_skype</artifactId>
+		<version>0.2-SNAPSHOT</version>
+	</dependency>
+  </dependencies>
+</project>
++------------------------------------------------------------+
+
+** Creating the code
+
+  * In the folder src/main/java create a package called my.skype.test
+  
+  * In that package create a new Class called SkypeExample and another class called Listeners
+  
+  []
+  
+  SkypeExample will contain the needed code to log on to a Skype account and Listeners is used to 
+  define which information we are interested in retrieving from Skype such as changes in 
+  peoples status, new messages, SMS'es, call-events etc. 
+  
+*** The content of Listeners:
+ ~~~~~~~~~~~~~~
++------------------------------------------------------------+
+
+package my.skype.test;
+
+import org.net4care.skype.api.Net4CareSession;
+import org.net4care.skype.util.Net4CareListeners;
+
+public class Listeners extends Net4CareListeners {
+	
+
+	public Listeners(Net4CareSession mySession) {
+		super(mySession);
+	}
+
+	public void registerAllListeners() {
+        mySession.mySkype.registerConnectionListener(this);
+        mySession.mySkype.registerSkypeListener(this);
+        mySession.mySkype.registerAccountListener(this);
+        mySession.mySkype.registerContactListener(this);
+        mySession.mySkype.registerContactGroupListener(this);
+        mySession.mySkype.registerContactSearchListener(this);
+        mySession.mySkype.registerConversationListener(this);
+        mySession.mySkype.registerMessageListener(this);
+        mySession.mySkype.registerParticipantListener(this);
+        mySession.mySkype.registerSmsListener(this);
+        mySession.mySkype.registerTransferListener(this);
+        mySession.mySkype.registerVideoListener(this);
+        mySession.mySkype.registerVoicemailListener(this);
+	}
+
+	public void unRegisterAllListeners() {
+        mySession.mySkype.unRegisterSkypeListener(this);
+        mySession.mySkype.unRegisterAccountListener(this);
+        mySession.mySkype.unRegisterContactListener(this);
+        mySession.mySkype.unRegisterContactGroupListener(this);
+        mySession.mySkype.unRegisterContactSearchListener(this);
+        mySession.mySkype.unRegisterConversationListener(this);
+        mySession.mySkype.unRegisterMessageListener(this);
+        mySession.mySkype.unRegisterParticipantListener(this);
+        mySession.mySkype.unRegisterSmsListener(this);
+        mySession.mySkype.unRegisterTransferListener(this);
+        mySession.mySkype.unRegisterVideoListener(this);
+        mySession.mySkype.unRegisterVoicemailListener(this);
+        mySession.mySkype.unRegisterConnectionListener(this);
+	}
+
+
+}
++------------------------------------------------------------+
+
+  Just for the sake of presentation we choose to subscribe to all possible events. The class Net4CareListeners 
+  that we extend provides a standard implementation of a portion of these events, feel free to inspect the Net4CareListeners 
+  class. 
+
+
+*** The content of SkypeExample:
+ ~~~~~~~~~~~~~~
++------------------------------------------------------------+
+package my.skype.test;
+
+import org.net4care.skype.api.Net4CareSession;
+import org.net4care.skype.api.SignInMgr;
+import org.net4care.skype.appkeypair.AppKeyPairMgr;
+
+public class SkypeExample {
+
+	public static final String MY_CLASS_TAG = "SkypeExample";
+
+	private static Net4CareSession mySession = new Net4CareSession();
+	private static AppKeyPairMgr myAppKeyPairMgr = new AppKeyPairMgr();
+
+	private static String ACC_NAME = "Skype-account-name";
+	private static String ACC_PWD = "Skype-account-password";
+	private static String KEYPAIR_PATH = "Path-to-keypair";
+
+	private static SkypeExample skypelogin = new SkypeExample();
+
+	public static void main(String[] args) {
+
+			if ((!myAppKeyPairMgr.resolveAppKeyPairPath(KEYPAIR_PATH))
+					|| (!myAppKeyPairMgr.isValidCertificate())) {
+				return;
+			}
+
+			Net4CareSession.myConsole.printf(
+					"%s: main - Creating session - Account = %s%n", MY_CLASS_TAG,
+					ACC_NAME);
+			
+			if (mySession.doCreateSession(MY_CLASS_TAG, ACC_NAME,
+					myAppKeyPairMgr.getPemFilePathname(), new Listeners(mySession))) {
+				
+			} else {
+				skypelogin.teardown();
+				System.exit(1);
+			}
+			
+			if (mySession.mySignInMgr.Login(MY_CLASS_TAG, mySession, ACC_PWD)) {
+				Net4CareSession.myConsole.printf("%s: Successfully logged in...%nPress Enter to quit.%n%n", MY_CLASS_TAG);
+				try {
+					while (true) {
+						int keyboardChar = System.in.read();
+						// Some platforms think ENTER is 0x0D; others think it's 0x0A...
+						if ((keyboardChar == 0x0D) || (keyboardChar == 0x0A)) {
+							break;
+						}
+			   	   	}
+				} catch (Exception e) {
+					
+				}
+			} else {
+				Net4CareSession.myConsole.printf("%s: Account for %s does not exist.%n",
+						MY_CLASS_TAG, mySession.myAccountName);
+				skypelogin.teardown();
+				System.exit(1);
+			}
+
+			skypelogin.teardown();
+		}
+
+	public void teardown() {
+		if (mySession != null) {
+			mySession.mySignInMgr.Logout(MY_CLASS_TAG, mySession);
+			while (SignInMgr.isLoggedIn(mySession.myAccount)) {
+				// wait
+			}
+			mySession.doTearDownSession();
+		}
+		System.exit(0);
+	}
+
+}
++------------------------------------------------------------+
+
+  Now we are almost ready to log on Skype. 
+  
+  * Insert your own Skype account name and password in ACC_NAME and ACC_PWD 
+  
+  * The path to your keypair folder in KEYPAIR_PATH (if placed at the root of C:\\ this path would be '/keypair') 
+  
+  []
+  
+  Now this small piece of code handles validation of the keypair, connection to your runtime and then connecting and logging on Skype. 
+  Furthermore any changes in your buddylist (login, logut, busy etc..) is printed to System.out once successfully logged on. 
+  
+** Running the code
+
+  Fire up your SkypeKit runtime (as always when running SkypeKit applications). On windows you simple double-click the executable.
+  
+*** Using maven only
+
+  Navigate to the root of your project (my.skype folder).
+  
+  Compile the code:
+  
++----------------------------+
+  mvn clean compile
++----------------------------+
+
+  Then run the example:
+  
++----------------------------+
+  mvn exec:exec -Dexec.executable="java" -Dexec.args="-cp %classpath my.skype.test.SkypeExample"
++----------------------------+
+
+  If you already know about maven and wonder why exec:exec is used and not exec:java, the reason lies in the fact that 
+  exec:java does not spawn a new process which is needed in order to connect to Skype runtime.
+
+*** Using eclipse
+
+  Simply run SkypeExample as a Java application (ctrl+F11).
+  
+* Tutorial 2 - Automatic authorization and answering incoming calls
+~~~~~~~~~~~~~~
+
+  In this tutorial we show how to accept buddy requests and automatically answer incomming calls.
+  
+** Creating the code
+
+  Either create a new project in the way described in {{{Tutorial_1_-_Login_step-by-step}Login step-by-step}} or simply
+  extend the code existing code.
+  
+*** The content of Listeners:
+
+  <<Notice:>> All the code below is taken directly from Net4CareListeners, hence in this
+  example we would achieve the exact same result using Listeners from {{{Tutorial_1_-_Login_step-by-step}Login step-by-step}}. 
+  But, overriding listener methods like done below is the way to implement your own functionality, so 
+  it seems natural to present that possibility here.
+  
++------------------------------------------------------------+
+
+package my.skype.test;
+
+import org.net4care.skype.api.Net4CareSession;
+import org.net4care.skype.util.Net4CareListeners;
+
+import com.skype.api.Contact;
+import com.skype.api.ContactGroup;
+import com.skype.api.Conversation;
+import com.skype.api.Participant;
+import com.skype.api.Skype;
+
+public class Listeners extends Net4CareListeners {
+	
+    /**
+	 * Whether a call is in progress: Part I.
+	 * <br /><br />
+	 * Holds a reference to the affected Conversation instance so it doesn't get garbage-collected
+	 * in the middle of the call. Initialized to null by caller; set to
+	 * non-null by Conversation onPropertyChange and ConversationList onChange handlers.
+	 * 
+	 * @see com.skype.api.Conversation
+	 * @see com.skype.api.SkypeListener#onConversationListChange(com.skype.api.Skype, com.skype.api.Conversation, com.skype.api.Conversation.ListType, boolean)
+	 * 
+	 * @since 1.0
+	 */
+    Conversation activeConversation = null;
+
+    /**
+	 * Whether a call is in progress: Part II.
+	 * <br /><br />
+	 * Holds a reference to <em>Participants</em> of the affected Conversation instance so they
+	 * don't get garbage-collected in the middle of the call. Initialized to null by caller; set to
+	 * non-null by Conversation onPropertyChange and ConversationList onChange handlers.
+	 * 
+	 * @see com.skype.api.Conversation
+	 * @see com.skype.api.SkypeListener#onConversationListChange(com.skype.api.Skype, com.skype.api.Conversation, com.skype.api.Conversation.ListType, boolean)
+	 * 
+	 * @since 1.0
+	 */
+    Participant[] activeConversationParticipants = null;
+
+	public Listeners(Net4CareSession mySession) {
+		super(mySession);
+	}
+
+	public void registerAllListeners() {
+        mySession.mySkype.registerConnectionListener(this);
+        mySession.mySkype.registerSkypeListener(this);
+        mySession.mySkype.registerAccountListener(this);
+        mySession.mySkype.registerContactListener(this);
+        mySession.mySkype.registerContactGroupListener(this);
+        mySession.mySkype.registerContactSearchListener(this);
+        mySession.mySkype.registerConversationListener(this);
+        mySession.mySkype.registerMessageListener(this);
+        mySession.mySkype.registerParticipantListener(this);
+        mySession.mySkype.registerSmsListener(this);
+        mySession.mySkype.registerTransferListener(this);
+        mySession.mySkype.registerVideoListener(this);
+        mySession.mySkype.registerVoicemailListener(this);
+	}
+
+	public void unRegisterAllListeners() {
+        mySession.mySkype.unRegisterSkypeListener(this);
+        mySession.mySkype.unRegisterAccountListener(this);
+        mySession.mySkype.unRegisterContactListener(this);
+        mySession.mySkype.unRegisterContactGroupListener(this);
+        mySession.mySkype.unRegisterContactSearchListener(this);
+        mySession.mySkype.unRegisterConversationListener(this);
+        mySession.mySkype.unRegisterMessageListener(this);
+        mySession.mySkype.unRegisterParticipantListener(this);
+        mySession.mySkype.unRegisterSmsListener(this);
+        mySession.mySkype.unRegisterTransferListener(this);
+        mySession.mySkype.unRegisterVideoListener(this);
+        mySession.mySkype.unRegisterVoicemailListener(this);
+        mySession.mySkype.unRegisterConnectionListener(this);
+	}
+	
+	/**
+	 * This handler fires for all ContactGroups. If it's <em>not</em>
+	 * a pending authorization request, log and ignore it.
+	 * @since 1.0
+	 * 
+	 * @see com.skype.api.ContactGroupListener#onChange(com.skype.api.ContactGroup, com.skype.api.Contact)
+	 */
+	public void onChange(com.skype.api.ContactGroup obj, Contact contact) {
+
+		String contactSkypeName = contact.getSkypeName(); // Find out who it's from
+		String contactDisplayName = contact.getDisplayName();
+
+		
+		ContactGroup waitingAuth =
+				mySession.mySkype.getHardwiredContactGroup(ContactGroup.Type.CONTACTS_WAITING_MY_AUTHORIZATION);
+		Contact[] waitingAuthMembers = waitingAuth.getContacts();
+		int waitingAuthMembersCnt = waitingAuthMembers.length;
+		
+		
+		if (waitingAuthMembersCnt == 0) {
+			Net4CareSession.myConsole.printf("%s: Ignoring ContactGroup change for %s (%s); no Contacts awaiting authorization %n",
+					mySession.myClassTag, contactSkypeName, contactDisplayName);
+			return;
+		}
+		
+		
+		if (contact.getReceivedAuthRequest().length() == 0){
+			Net4CareSession.myConsole.printf("%s: Ignoring ContactGroup change; Contact  %s (%s) is not awaiting authorization %n",
+					mySession.myClassTag, contactSkypeName, contactDisplayName);
+			return;
+		}
+
+		String authRequestText = contact.getReceivedAuthRequest();	// Get any intro text...
+   		if ((authRequestText == null) || (authRequestText.length() == 0)) {						// ...and default it if missing
+   			authRequestText = "-- NO INTRODUCTORY TEXT --";
+   		}
+		Net4CareSession.myConsole.printf("%s: Authorization request from: %s (%s):%n\t%s",
+				mySession.myClassTag, contactSkypeName, contactDisplayName, authRequestText);
+		contact.setBuddyStatus(true, true);
+
+   			Net4CareSession.myConsole.printf("%s: %s is now authorized!%n", mySession.myClassTag, contactSkypeName);
+	}
+
+	/**
+	 *
+	 * @param obj
+	 * 	The affected Participant.
+	 * @param prop
+	 * 	The Participant property that triggered this event.
+	 * @param value
+	 * 	Ignored.
+	 * 
+	 * @since 1.0
+	 * 
+	 * @see com.skype.api.ParticipantListener#onPropertyChange(com.skype.api.Participant, com.skype.api.Participant.Property, int, String)
+	 */
+	public void onPropertyChange(com.skype.api.Participant obj, com.skype.api.Participant.Property prop, int value, String svalue) {
+		Participant affectedParticipant = (Participant)obj;
+
+		if (prop == Participant.Property.P_SOUND_LEVEL)
+		{
+			Net4CareSession.myConsole.printf("Sound level changed to %d for %s%n",
+					affectedParticipant.getSoundLevel(),
+					affectedParticipant.getIdentity());
+		}
+		else if (prop == Participant.Property.P_VOICE_STATUS)
+		{
+			Participant.VoiceStatus voiceStatus = affectedParticipant.getVoiceStatus();
+			Net4CareSession.myConsole.printf("Voice status changed to %s for %s%n",
+					voiceStatus.toString(),
+					affectedParticipant.getIdentity());
+		}
+    }
+    
+    /**
+	 * 
+	 * @param obj
+	 * 	The affected Conversation.
+	 * @param prop
+	 * 	The Conversation property that triggered this event.
+	 * @param value
+	 * 	Ignored.
+	 * 
+	 * @since 1.0
+	 * 
+	 * @see com.skype.api.ConversationListener#onPropertyChange(com.skype.api.Conversation, com.skype.api.Conversation.Property, int, String)
+	 */
+	public void onPropertyChange(com.skype.api.Conversation obj, com.skype.api.Conversation.Property prop, int value, String svalue) {
+
+		if (prop == Conversation.Property.P_LOCAL_LIVE_STATUS) {
+ 			Conversation affectedConversation = (Conversation)obj;
+			Conversation.LocalLiveStatus liveStatus = affectedConversation.getLocalLiveStatus();
+			Net4CareSession.myConsole.printf("%s: Live status changed to %s%n",
+								mySession.myClassTag, liveStatus.toString());
+			switch (liveStatus) {
+			case RINGING_FOR_ME:
+				Net4CareSession.myConsole.println("RING RING...");
+				if (doPickUpCall()) {
+					Net4CareSession.myConsole.println("Conv: Call answered!");
+					activeConversation = affectedConversation;
+					activeConversationParticipants = affectedConversation.getParticipants(Conversation.ParticipantFilter.ALL);
+					mySession.callActive = true;
+				}
+				break;
+			case RECENTLY_LIVE:
+			case NONE:
+				activeConversation = null;
+				activeConversationParticipants = null;
+				mySession.callActive = false;
+				Net4CareSession.myConsole.println("Conv: Call has ended/never started.");
+				break;
+			case IM_LIVE:
+				Net4CareSession.myConsole.println("Conv: Live session is up!");
+				break;
+			default:
+				Net4CareSession.myConsole.println(mySession.myClassTag + ": Conv - Ignoring LiveStatus " + liveStatus.toString());
+				break;
+			}
+        }
+	}
+	
+    /**
+	 * @param conversation
+	 * 	The affected Conversation.
+	 * @param type
+	 * 	The Conversation list type that triggered this event.
+	 * @param added
+	 * 	Ignored.
+	 * 
+	 * @since 1.0
+	 * 
+	 */
+	public void onConversationListChange(Skype obj, Conversation conversation, Conversation.ListType type, boolean added) {
+		
+		Net4CareSession.myConsole.printf("%s: ConversationListChange fired on: %s%n",
+				mySession.myClassTag, conversation.getDisplayName());
+
+		if (type == Conversation.ListType.LIVE_CONVERSATIONS) {
+			Conversation.LocalLiveStatus liveStatus = conversation.getLocalLiveStatus();
+			Net4CareSession.myConsole.printf("%s: Live status changed to %s%n",
+								mySession.myClassTag, liveStatus.toString());
+			switch (liveStatus) {
+			case RINGING_FOR_ME:
+				activeConversation = conversation;
+				activeConversationParticipants = conversation.getParticipants(Conversation.ParticipantFilter.ALL);
+				conversation.join();
+				mySession.callActive = true;
+				break;
+			case RECENTLY_LIVE:
+			case NONE:
+				Net4CareSession.myConsole.printf("%s: Call finished.%n", mySession.myClassTag);
+				activeConversation = null;
+				activeConversationParticipants = null;
+				mySession.callActive = false;
+				break;
+			case IM_LIVE:
+				Net4CareSession.myConsole.printf("%s: Live session is up.%n", mySession.myClassTag);
+				break;
+			default:
+				Net4CareSession.myConsole.printf("%s: Ignoring Conversation status %s%n",
+									mySession.myClassTag, liveStatus.toString());
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Business logic for answering a call..
+	 * 
+	 * @return
+	 * <ul>
+	 *   <li>true: call picked up</li>
+	 *   <li>false: no call to pick up/call not answered/error</li>
+	 * </ul>
+	 * 
+	 * @since 1.0
+	 */
+	public boolean doPickUpCall() {
+		Conversation[] liveConversations = mySession.mySkype.getConversationList(Conversation.ListType.LIVE_CONVERSATIONS);
+		if (liveConversations.length == 0) {
+			Net4CareSession.myConsole.printf("%s: No live conversations to pick up!%n", mySession.myClassTag);
+			return (false);
+		}
+		
+		Conversation targetConversation = liveConversations[0];
+
+		Participant[] callerList = targetConversation.getParticipants(Conversation.ParticipantFilter.OTHER_CONSUMERS);
+		StringBuffer displayParticipantsStr = new StringBuffer();
+
+		displayParticipantsStr.setLength(0);
+		int i;
+		int j = callerList.length;
+		for (i = 0; i < j; i++) {
+			displayParticipantsStr.append((" " + callerList[i].getIdentity()));
+		}
+
+		Conversation.LocalLiveStatus liveStatus = targetConversation.getLocalLiveStatus();
+		switch (liveStatus) {
+		case RINGING_FOR_ME:
+			Net4CareSession.myConsole.println("RING RING...");
+			Net4CareSession.myConsole.printf("Incoming call from: %s %n", displayParticipantsStr.toString());
+			targetConversation.joinLiveSession(targetConversation.getJoinBlob());
+			return (true);
+			// break;
+		case IM_LIVE:
+			Net4CareSession.myConsole.printf("Another call is coming in from : %s %n", displayParticipantsStr.toString());
+			Net4CareSession.myConsole.println("As we already have a live session up, we will reject it.");
+			targetConversation.leaveLiveSession(true);
+			break;
+		default:
+			Net4CareSession.myConsole.println(mySession.myClassTag + ": Ignoring LiveStatus " + liveStatus.toString());
+			break;
+		}
+
+		return (false);
+	}
+
+}
+
++------------------------------------------------------------+
+  
+  
+*** The content of SkypeExample: 
+
++------------------------------------------------------------+
+package my.skype.test;
+
+import org.net4care.skype.api.Net4CareSession;
+import org.net4care.skype.api.SignInMgr;
+import org.net4care.skype.appkeypair.AppKeyPairMgr;
+
+public class SkypeExample {
+
+	public static final String MY_CLASS_TAG = "SkypeExample";
+
+	private static Net4CareSession mySession = new Net4CareSession();
+	private static AppKeyPairMgr myAppKeyPairMgr = new AppKeyPairMgr();
+
+	private static String ACC_NAME = "Skype-account-name";
+	private static String ACC_PWD = "Skype-account-password";
+	private static String KEYPAIR_PATH = "Path-to-keypair";
+
+	private static SkypeExample skypelogin = new SkypeExample();
+
+	public static void main(String[] args) {
+
+			if ((!myAppKeyPairMgr.resolveAppKeyPairPath(KEYPAIR_PATH))
+					|| (!myAppKeyPairMgr.isValidCertificate())) {
+				return;
+			}
+
+			Net4CareSession.myConsole.printf(
+					"%s: main - Creating session - Account = %s%n", MY_CLASS_TAG,
+					ACC_NAME);
+			
+			if (mySession.doCreateSession(MY_CLASS_TAG, ACC_NAME,
+					myAppKeyPairMgr.getPemFilePathname(), new Listeners(mySession))) {
+				
+			} else {
+				skypelogin.teardown();
+				System.exit(1);
+			}
+			
+			if (mySession.mySignInMgr.Login(MY_CLASS_TAG, mySession, ACC_PWD)) {
+			    // Get authorization requests
+				mySession.doGetAuthorizationtRequests();
+				// Setup audio devices and listener for call events 
+				mySession.doAcceptCalls();
+				Net4CareSession.myConsole.printf("%s: Now accepting incoming calls...%nPress Enter to quit.%n%n", MY_CLASS_TAG);
+				try {
+					while (true) {
+						int keyboardChar = System.in.read();
+						// Some platforms think ENTER is 0x0D; others think it's 0x0A...
+						if ((keyboardChar == 0x0D) || (keyboardChar == 0x0A)) {
+							break;
+						}
+			   	   	}
+				} catch (Exception e) {
+					
+				}
+			} else {
+				Net4CareSession.myConsole.printf("%s: Account for %s does not exist.%n",
+						MY_CLASS_TAG, mySession.myAccountName);
+				skypelogin.teardown();
+				System.exit(1);
+			}
+
+			skypelogin.teardown();
+		}
+
+	public void teardown() {
+		if (mySession != null) {
+			mySession.mySignInMgr.Logout(MY_CLASS_TAG, mySession);
+			while (SignInMgr.isLoggedIn(mySession.myAccount)) {
+				// wait
+			}
+			mySession.doTearDownSession();
+		}
+		System.exit(0);
+	}
+
+}
++------------------------------------------------------------+
+
+  The only code added to the main application is:
+  
++------------------------------------------------------------+
+   	// Get authorization requests
+	mySession.doGetAuthorizationtRequests();
+	// Setup audio devices and listener for call events 
+	mySession.doAcceptCalls();
++------------------------------------------------------------+
+
+  * doGetAuthorizationtRequests() enables incoming events at Listeners.onChange(com.skype.api.ContactGroup obj, Contact contact)
+  
+  * doAcceptCalls() setup audio by selecting the first available input and output devices
+  
+  []
+
+  That is it! You can now log on to a Skype account with this small application and call it using another Skype account. 
+  If these Skype accounts are mutual buddies, you can call this application and it will automatically answer the call. Alternatively, if 
+  they do not know each other, an authorization request will automatically be accepted, which enables calling.
+
+  <<Note:>> it is highly recommended that you use two different devices for this test as multiple sessions on a computer can cause 
+  problems.
+  
+** Running the code
+
+  Fire up your SkypeKit runtime (as always when running SkypeKit applications). On windows you simple double-click the executable.
+  
+*** Using maven only
+
+  Navigate to the root of your project (my.skype folder).
+  
+  Compile the code:
+  
++----------------------------+
+  mvn clean compile
++----------------------------+
+
+  Then run the example:
+  
++----------------------------+
+  mvn exec:exec -Dexec.executable="java" -Dexec.args="-cp %classpath my.skype.test.SkypeExample"
++----------------------------+
+
+*** Using eclipse
+
+  Simply run SkypeExample as a Java application (ctrl+F11).
+  
+* Net4Care Skype deviations
+~~~~~~~~~~~~~~
+
+  As mentioned earlier, if you already know how to use SkypeKit before moving on to Net4Care Skype, you probably notice 
+  some differences.
+  
+  The Session code from SkypeKit tutorials does not support using different implementation of Listeners unless you duplicate the Session code. 
+  This is possible (and highly encouraged) with Net4Care Skype as we wish to provide:
+  
+  [[1]] A simpler way to use Skype SDK.
+  
+  		* You need not to handle (or know about) standard classes such as
+  		
+  			* SignInMgr
+  			
+  			* AppKeyPairMgr
+  
+  [[2]] A platform for providing helper methods, see {{{Added_methods}Added_methods}}.  
+  
+** Net4CareListeners
+
+  Instead of implementing the interface of those Skype Listeners that you are interested in, Net4Care Skype is designed so that 
+  you extend Net4CareListeners. This is an abstract class implementing all possible Skype Listeners, which means that you need 
+  only to focus on the Skype Listeners, see the 
+  {{{http://developer.skype.com/skypekit/reference/java2/index.html} SkypeKit Reference}}, that
+   you are interested in.
+  
+*** The Constructor
+
+  Here you should <<not>> call registerAllListeners() as this would raise a NullpointerException.
+  The call to registerAllListeners() is done in Net4CareSession.doCreateSession(..).
+  
++------------------------+
+	public MyListeners(Net4CareSession mySession) {
+		super(mySession);
+	}
++------------------------+	
+
+*** Subscribing to events 
+
+   
+   * Add the Listener to registerAllListeners
+   
+   * Add the Listener to unRegisterAllListeners
+   
+   * Override the relevant method(s) where you wish non standard behavior (as defined in Net4CareListeners)
+   
+   []
+ 
+**** Example
+ 
++------------------------+
+	public void registerAllListeners() {
+		//...
+		mySession.mySkype.registerMessageListener(this);
+		//...
+	}
+	
+	public void unRegisterAllListeners() {
+		//...
+		mySession.mySkype.unRegisterMessageListener(this);
+		//...
+	}
+	
+	public void onMessage(com.skype.api.Conversation obj, Message message) {
+		// Business logic
+	}
++------------------------+
+
+**** The Exception!
+
+  Because we provide the method {{addAccountToContactsString_account}} as part of the extra methods in 
+  Net4CareSession, if you override 
+  {{{http://developer.skype.com/skypekit/reference/java2/html/com/skype/api/ContactSearchListener.html#onNewResult(com.skype.api.ContactSearch, com.skype.api.Contact, int)}onNewResult(...)}}, 
+  this method will no longer work.
+  
+  It is also more than likely that you would like to use {{{http://developer.skype.com/skypekit/reference/java2/html/com/skype/api/ContactSearchListener.html#onNewResult(com.skype.api.ContactSearch, com.skype.api.Contact, int)}onNewResult(...)}} 
+  at multiple occasions such as:
+  
+  * Listing results of a search
+  
+  * Adding an account to contacts
+  
+  * Show profile data of the first contact found
+  
+  * etc..
+  
+  Our solution to this problem is to introduce a Command Pattern. An example of how to print the first
+  100 results from a search in your application could be:
+  
++------------------------+	  
+	public void search() {
+		mySession.onNewResult = new OutputSearch();
+		ContactSearch cs = mySession.mySkype.createBasicContactSearch("test");
+		if (cs.isValid()) {
+			cs.submit();
+		}
+	}
+	
+	
+	public class OutputSearch implements HandleCallbackResult {
+		
+		// prints 100 times as this is the current maximum result size supported for SkypeKit
+		public void handleResult(Object... data) {
+			Contact contact = (Contact) data[1];
+			int rankValue = (Integer) data[2];
+			System.out.println("onNewResult(" + contact.getIdentity() + ", " + rankValue + ")");
+		}
+	}
++------------------------+	
+
+  It is possible to use the onNewResult callback in the same fashion for any purpose. The only requirement 
+  is to change mySession.onNewResult to point at the correct 'Command object' implementing HandleCallbackResult.
+
+** Net4CareSession
+
+  
+*** Deviation
+
+  The only difference from the SkypeKit Session code is the method doCreateSession() where we have added 
+  a Net4CareListener parameter to enable custom implementation of Listeners.
+  
++------------------------+	
+	public boolean doCreateSession(String classTag, String accountName,
+			String pathName, Net4CareListeners listeners) {
+			...
+		    myListeners = listeners;
+		    Net4CareSession.myConsole.println("\tRegistering the listeners...");
+		    listeners.registerAllListeners();
+		    ...
+    }
++------------------------+	
+
+*** Added methods
+
+ * doGetAuthorizationtRequests()
+ 
+   * enables incoming events at Listeners.onChange(com.skype.api.ContactGroup obj, Contact contact)
+   
+ * doAcceptCalls()
+ 
+   * setup audio by selecting the first available input and output devices
+   
+ * doMakeCall(String myCallTarget, boolean videoCall)
+ 
+   * Initiates a call to myCallTarget with or without video determined by videoCall boolean
+   
+ * {addAccountToContacts(String account)}
+ 
+   * Performs a simple search for an account. The first match found (if any)
+	 receives an auth request if needed and is added as buddy to the owner of
+	 this session.
+
+
+  

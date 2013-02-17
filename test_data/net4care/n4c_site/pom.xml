@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.net4care</groupId>
+  <artifactId>net4care</artifactId>
+  <version>0.3-SNAPSHOT</version>
+
+  <packaging>pom</packaging>
+
+  <name>Net4Care Site</name>
+  <url>http://www.net4care.org/</url>
+  <inceptionYear>2011</inceptionYear>
+
+  <issueManagement>
+    <system>redmine</system>
+    <url>http://redmine.net4care.org</url>
+  </issueManagement>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.1.1</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <distributionManagement>
+    <site>
+      <id>website</id>
+      <url>scp://net4care@fh.cs.au.dk:/web/net4care/public_html/</url>
+    </site>
+  </distributionManagement>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+	 <groupId>org.apache.maven.plugins</groupId>
+	 <artifactId>maven-site-plugin</artifactId>
+	 <version>3.0-beta-2</version>
+	 <configuration>
+	   <reportPlugins>
+	     <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-project-info-reports-plugin</artifactId>
+		<version>2.2</version>
+		<reports>
+		  <report>issue-tracking</report>
+		</reports>
+	     </plugin>
+	   </reportPlugins>
+          <locales>en</locales>
+	 </configuration>
+	 <dependencies>
+	   <dependency><!-- add support for ssh/scp -->
+	     <groupId>org.apache.maven.wagon</groupId>
+	     <artifactId>wagon-ssh</artifactId>
+	     <version>1.0</version>
+	   </dependency>
+	 </dependencies>
+      </plugin> 
+      <plugin>
+	 <artifactId>maven-clean-plugin</artifactId>
+	 <version>2.4.1</version>
+	 <configuration>
+	   <filesets>
+	     <fileset>
+		<directory>src/site/resources/</directory>
+		<includes>
+		  <include>javadoc/**</include>
+		  <include>download/net4care-${project.version}.zip</include>
+		</includes>
+	     </fileset>
+	   </filesets>
+	 </configuration>
+      </plugin>    
+    </plugins>
+  </build>
+</project>

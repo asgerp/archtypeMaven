@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ClinicalDocument xmlns="urn:hl7-org:v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" classCode="DOCCLIN" moodCode="EVN">
+  <typeId extension="POCD_HD000040" root="2.16.840.1.113883.1.3"/>
+  <templateId root="2.16.840.1.113883.10.20.9"/>
+  <id extension="FixedUUID" root="2.16.840.1.113883.3.1558"/>
+  <code code="53576-5" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Personal Health Monitoring Report"/>
+  <title>Net4Care teleobservation for patient 251248-4916</title>
+  <effectiveTime value="20120601073000"/>
+  <confidentialityCode code="N" codeSystem="2.16.840.1.113883.5.25"/>
+  <languageCode code="da"/>
+  <recordTarget contextControlCode="OP" typeCode="RCT">
+    <patientRole classCode="PAT">
+      <id extension="251248-4916" root="2.16.840.1.113883.3.1558.2.1"/>
+      <addr>
+        <streetAddressLine>Skovvejen 12</streetAddressLine>
+        <city>Aarhus N</city>
+        <postalCode>8010</postalCode>
+        <country>Danmark</country>
+      </addr>
+      <telecom value="tel:86121824"/>
+      <patient classCode="PSN" determinerCode="INSTANCE">
+        <name>
+          <given>Nancy</given>
+          <family>Berggren</family>
+        </name>
+        <administrativeGenderCode code="F" codeSystem="2.16.840.1.113883.5.1"/>
+        <birthTime value="19481225"/>
+      </patient>
+    </patientRole>
+  </recordTarget>
+  <author contextControlCode="OP" typeCode="AUT">
+    <time value="20120601073000"/>
+    <assignedAuthor classCode="ASSIGNED">
+      <id extension="1" root="2.16.840.1.113883.3.1558.10.6.1"/>
+      <addr>
+        <streetAddressLine>Brendstrupgaardsvej 100</streetAddressLine>
+        <city>Aarhus N</city>
+        <postalCode>8200</postalCode>
+        <country>Danmark</country>
+      </addr>
+      <telecom value="tel:78450000"/>
+      <assignedPerson>
+        <name>
+          <given>Carsten</given>
+          <family>Nieboehl</family>
+        </name>
+      </assignedPerson>
+    </assignedAuthor>
+  </author>
+  <custodian typeCode="CST">
+    <assignedCustodian classCode="ASSIGNED">
+      <representedCustodianOrganization classCode="ORG" determinerCode="INSTANCE">
+        <id extension="1" root="2.16.840.1.113883.3.1558.10.6.1"/>
+        <name>Region Midt / Skeyby Sygehus</name>
+        <telecom value="tel:78450000"/>
+        <addr>
+          <streetAddressLine>Brendstrupgaardsvej 100</streetAddressLine>
+          <city>Aarhus N</city>
+          <postalCode>8200</postalCode>
+          <country>Danmark</country>
+        </addr>
+      </representedCustodianOrganization>
+    </assignedCustodian>
+  </custodian>
+  <documentationOf>
+    <serviceEvent classCode="MPROT">
+      <effectiveTime>
+        <low value="20120601073000"/>
+        <high value="20120601073000"/>
+      </effectiveTime>
+    </serviceEvent>
+  </documentationOf>
+  <component typeCode="COMP">
+    <structuredBody classCode="DOCBODY" moodCode="EVN">
+      <component typeCode="COMP">
+        <section>
+          <templateId root="2.16.840.1.113883.10.20.1.7"/>
+          <templateId root="2.16.840.1.113883.10.20.9.1"/>
+          <code code="46264-8" codeSystem="2.16.840.1.113883.6.1"/>
+          <title>Medical Equipment</title>
+          <text>Device properties: Type: Spirometer Model: SpiroCraft-II Manufacturer: MyCompany Serial No: 584216 Part No: 69854 Hardware Revision: 2.1 Software Revision: 1.1.</text>
+          <entry typeCode="COMP">
+            <organizer classCode="CLUSTER" moodCode="EVN">
+              <templateId root="2.16.840.1.113883.10.20.9.4"/>
+              <statusCode code="completed"/>
+              <participant typeCode="SBJ">
+                <templateId root="2.16.840.1.113883.10.20.9.9"/>
+                <participantRole classCode="MANU">
+                  <playingDevice>
+                    <manufacturerModelName>MyCompany / Model: SpiroCraft-II / Part: 69854</manufacturerModelName>
+                    <softwareName>SerialNr: 584216 / HW Rev. 2.1 / SW Rev. 1.1</softwareName>
+                  </playingDevice>
+                </participantRole>
+              </participant>
+            </organizer>
+          </entry>
+        </section>
+      </component>
+      <component typeCode="COMP">
+        <section>
+          <templateId root="2.16.840.1.113883.10.20.1.14"/>
+          <templateId root="2.16.840.1.113883.10.20.9.14"/>
+          <code code="30954-2" codeSystem="2.16.840.1.113883.6.1"/>
+          <title>Results</title>
+          <text>Measured: FVC:3.7 L / FEV1:3.42 L</text>
+          <entry typeCode="COMP">
+            <organizer classCode="CLUSTER" moodCode="EVN">
+              <templateId root="2.16.840.1.113883.10.20.1.35"/>
+              <statusCode code="completed"/>
+              <component>
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="2.16.840.1.113883.10.20.1.31"/>
+                  <templateId root="2.16.840.1.113883.10.20.9.8"/>
+                  <code code="19868-9" codeSystem="2.16.840.1.113883.6.1" displayName="FVC"/>
+                  <value unit="L" value="3.7" xsi:type="PQ"/>
+                </observation>
+              </component>
+            </organizer>
+          </entry>
+          <entry typeCode="COMP">
+            <organizer classCode="CLUSTER" moodCode="EVN">
+              <templateId root="2.16.840.1.113883.10.20.1.35"/>
+              <statusCode code="completed"/>
+              <component>
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="2.16.840.1.113883.10.20.1.31"/>
+                  <templateId root="2.16.840.1.113883.10.20.9.8"/>
+                  <code code="20150-9" codeSystem="2.16.840.1.113883.6.1" displayName="FEV1"/>
+                  <value unit="L" value="3.42" xsi:type="PQ"/>
+                </observation>
+              </component>
+            </organizer>
+          </entry>
+        </section>
+      </component>
+    </structuredBody>
+  </component>
+</ClinicalDocument>

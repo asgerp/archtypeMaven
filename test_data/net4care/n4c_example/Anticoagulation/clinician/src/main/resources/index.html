@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="http://www.net4care.org/alpha/css/apache-maven-fluido.min.css" />
+    
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+    
+    // Load Google Charts and get data when done
+    google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(getData);
+    
+    // Get data from Net4Care Observation service
+    function getData() {
+    	$.ajax({
+    			url: "http://localhost:8080/observation", 
+    			data: {cpr: "251248-4916",
+    				     intervalstart: "0",
+    				     codesystem: "2.16.840.1.113883.6.1",
+    				     codelist: "|34714-6|57262-8|"},
+    			success: function(data){
+    				json = new Array();
+    				for (i = 0; i < data.length; i++) {
+    				  observation = jQuery.parseJSON(data[i]);
+    	        json[i] = [i, 
+    	                   observation.observationSpecifics[1].fev1.value, 
+    	                   observation.observationSpecifics[1].fvc.value];  
+    				}
+    			 drawChart(json)
+    	    },
+    	    error:function (xhr, ajaxOptions, thrownError){
+    	    	  $("#chart_div").replaceWith("<p>(Error in getting data from server)</p>");
+    	    } 
+    	});
+    }
+
+    // Visualize Observation data using Google Charts
+    function drawChart(json) {
+    	var data = new google.visualization.DataTable();
+      data.addColumn('number', 'Time');
+      data.addColumn('number', 'INR Bld');
+      data.addColumn('number', 'MA');
+      data.addRows(json);
+      
+      var options = {
+          width: 400, height: 240,
+          title: 'Anticoagulation measurements'
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+      chart.draw(data, options);
+    }
+    </script>
+  </head>
+  <body>
+  <h1>Net4Care Observation Server</h1>
+  <div id="chart_div"></div>
+  </body>
+</html>

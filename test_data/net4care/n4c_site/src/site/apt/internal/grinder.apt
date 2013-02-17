@@ -1,0 +1,74 @@
+ -----
+ Performance testing
+ -----
+ Net4Care
+ -----
+
+Grinder
+~~~~~ 
+
+ Grinder is a java based load testing framework and it was chosen mainly because of the lightweight jython scripts used for execution and the 
+ ability to easily distribute a script to multiple machines (or agents) to do the work of choice.
+ 
+ Official website {{http://grinder.sourceforge.net/}}.
+ 
+  
+* Setup
+~~~~
+ 
+ Without going into too much detail this section will describe how to setup and use Grinder.
+ 
+ Firstly you need to checkout grinder from https://svn.nfit.au.dk/svn/net4care/trunk/src/Grinder.
+ 
+ This folder has the following structure:
+ 
++--------+
+           |- grinder-3.10
+ Grinder --|- linux
+           |- windows
++--------+
+ 
+ The folders linux and windows contains scripts to ease starting grinder. Locate the script setGrinderEnv inside one of these folders 
+ depending on your OS and change the variables to match your paths.
+ 
++--------+
+ GRINDERPATH=absolute path to the grinder-3.10 folder
+ GRINDERPROPERTIES=absolute path to grinder-3.10/dist/grinder.properties
+ JAVA_HOME=absolute path to java
++--------+
+ 
+ Lastly you will need to edit grinder.consoleHost inside the grinder.properties file to point at the machine responsible for distributing test 
+ scripts and collecting data. The default behavior if not set is to use localhost.
+ 
+* Usage
+~~~~
+
+ Suppose you have three machines and you want two of them to make performance testing and the third to distribute the work and collect data.
+ 
+ Assuming all three machines have been setup as described above then in a terminal go to the windows or linux folder on all three machines
+ depending on their OS. 
+ On the third machine run the startConsole script and similar on the two testing machines execute the startAgent script. 
+ 
+ This makes the two agents connect to the console and they are now ready to receive commands from the console.
+ 
+ In the Grinder console navigate to the menu called 'Distribute' and select 'Set directory...' and make it point to grinder-3.10/dist/. Next go to 
+ the Script tab, unfold the directory tree and select grinder.properties as the current properties file to use as shown below.
+ 
+[./../images/grinder_select_prop.png]
+ 
+[]
+
+ Now navigate to 'Distribute' yet again and select 'Distribute files'. This will distribute both the jython scripts and the properties file located 
+ in the distribution directory selected earlier. The same files as seen in the Script tab. Furthermore, because we selected our properties file to 
+ be used then all the connected agents will also use that which makes it very easy to change the script we want to be executed, proccesses, threads etc.
+ 
+ At this point it is possible to start the test 'Action' -> 'Start processes'.
+ 
+ This will execute the jython script n4c_postandget.py as stated in grinder.properties and is a test that produces new measurements 
+ 90% of the time and queries for all measurements 10% of the time. It may be necessary to edit the url on which this test operates inside the script, 
+ if so, remember to redistribute the changes to the agents before running.   
+ 
+ A detailed description of the console can be found at {{http://grinder.sourceforge.net/g3/console.html}}.
+ 
+ 
+ 

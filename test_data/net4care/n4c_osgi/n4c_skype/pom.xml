@@ -1,0 +1,110 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.net4care</groupId>
+	<artifactId>n4c_skype</artifactId>
+	<version>${project.parent.version}</version>
+
+
+	<name>Net4Care SkypeKit Bundle</name>
+	<description>SkypeKit SDK</description>
+
+	<parent>
+	    <groupId>org.net4care</groupId>
+	    <artifactId>n4c_osgi_parent</artifactId>
+	    <version>0.3-SNAPSHOT</version>
+	    <relativePath>../parent</relativePath>
+  	</parent>
+  
+	<packaging>bundle</packaging>
+
+	<properties>
+    	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    
+	<dependencies>
+		<dependency>
+		    <groupId>com.skype</groupId>
+		    <artifactId>skypekit</artifactId>
+		    <version>4.1.2.20</version>
+		    <scope>system</scope>
+			<systemPath>${project.basedir}/sdk/skypekit.jar</systemPath>
+		</dependency>
+	</dependencies>
+	
+	<build>
+		<plugins>
+		   <plugin>
+		    <groupId>org.codehaus.gmaven</groupId>
+		    <artifactId>gmaven-plugin</artifactId>
+		    <version>1.4</version>
+		    <executions>
+		        <execution>
+		            <phase>initialize</phase>
+		            <goals>
+		                <goal>execute</goal>
+		            </goals>
+		            <configuration>
+		                <source><![CDATA[
+		                    
+		                    import java.util.*;
+							import java.lang.*;
+							import java.net.*;
+
+							pom.properties['exec_extension'] = System.getProperty("os.name").contains('Windows') ? '.bat' : '';
+							
+		                ]]></source>
+		            </configuration>
+		        </execution>
+		    </executions>
+		   </plugin>
+		   <!-- 
+         <plugin> 
+			<groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-antrun-plugin</artifactId>
+		    <version>1.7</version>
+		    <dependencies>
+		    <dependency>
+				<groupId>ant-contrib</groupId>
+				<artifactId>ant-contrib</artifactId>
+				<version>20020829</version>
+			</dependency>
+			</dependencies>
+		        <executions>
+		          <execution>
+		          <id>install-skype</id>
+		            <phase>initialize</phase>
+		            <configuration>
+		              <target>
+		                  <echo>Installing local jar: n4c_skype/sdk/skypekit.jar</echo>
+						  <exec id="install-skype" dir="sdk" executable="mvn${exec_extension}">
+						     <arg value="install:install-file" />
+						     <arg value="-Dfile=skypekit.jar" />
+						     <arg value="-DpomFile=pom.xml" />
+						  </exec>  
+		              </target>
+		            </configuration>
+		            <goals>
+		              <goal>run</goal>
+		            </goals>
+		          </execution>
+		        </executions>
+         	</plugin>  -->
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>2.3.7</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Private-Package>com.skype.*,org.net4care.skype.*</Private-Package>
+						<Export-Package>org.net4care.skype.api,org.net4care.skype.interfaces</Export-Package>
+						<Embed-Dependency>com.skype.*</Embed-Dependency>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
+</project>

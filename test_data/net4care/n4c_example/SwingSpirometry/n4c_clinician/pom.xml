@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+  <name>Net4Care SwingSpirometry Server</name>
+  <description>A local server which can handle Net4Care data. It is started by issuing 'mvn pax:provision' inside the n4c_server directory.b</description>
+  
+	<parent>
+		<artifactId>com.smb.spirometry</artifactId>
+		<groupId>com.smb</groupId>
+		<version>0.3-SNAPSHOT</version>
+	</parent>
+	<groupId>com.smb</groupId>
+	<artifactId>n4c_server</artifactId>
+	<version>${project.parent.version}</version>
+
+	<packaging>pom</packaging>
+
+	<properties>
+		<org.ops4j.pax.logging.DefaultServiceLog.level>DEBUG
+		</org.ops4j.pax.logging.DefaultServiceLog.level>		<org.osgi.service.http.port.secure>8443</org.osgi.service.http.port.secure>
+    	<org.apache.felix.https.enable>true</org.apache.felix.https.enable>
+    	<org.apache.felix.http.enable>true</org.apache.felix.http.enable>
+
+    	<org.apache.felix.https.keystore>../src/main/resources/keystore</org.apache.felix.https.keystore>
+    	<org.apache.felix.https.keystore.password>net4care</org.apache.felix.https.keystore.password>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.smb</groupId>
+			<artifactId>n4c_data</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.net4care</groupId>
+			<artifactId>n4c_receiver</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.net4care</groupId>
+			<artifactId>n4c_forwarder</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.net4care</groupId>
+			<artifactId>n4c_storage</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ops4j.pax.logging</groupId>
+			<artifactId>pax-logging-service</artifactId>
+			<version>1.6.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.xerial</groupId>
+			<artifactId>sqlite-jdbc</artifactId>
+			<version>3.6.16</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.ops4j</groupId>
+				<artifactId>maven-pax-plugin</artifactId>
+				<version>1.5</version>
+				<configuration>
+					<provision>
+						<param>--platform=felix</param>
+					</provision>
+				</configuration>
+			</plugin>
+<!-- Removed by HBC as it cannot install on linux
+			<plugin>
+				<groupId>org.net4care</groupId>
+				<artifactId>maven-net4care-plugin</artifactId>
+			</plugin>
+-->
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.4.1</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>.</directory>
+							<includes>
+								<include>runner/**</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<!-- We add distribution here (in addition to the parent) since we want 
+		to use this POM standalone on a cloud instance -->
+
+	<distributionManagement>
+		<repository>
+			<id>ec2repo</id>
+			<url>http://${ec2.dns}:8083/archiva/repository/snapshots/</url>
+		</repository>
+	</distributionManagement>
+	<repositories>
+		<repository>
+			<id>snapshots</id>
+			<url>http://localhost:8083/archiva/repository/snapshots/</url>
+		</repository>
+	</repositories>
+</project>

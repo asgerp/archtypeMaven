@@ -1,0 +1,6 @@
+- Hvis jeg blindt følger din guide til initialisering af databasen, kommer alle mine tables til at ligge under system Databases->master->Tables. Hvis jeg derimod tilføjer "USE XDSRepositoryDB" øverst i scprit filen, virker det perfekt.
+- På side 6 står der at man skal indsætte strengen: '<add name="ATNA" connectionString=" Data Source=.\SQLExpress;Initial
+Catalog=XDSRepositoryDB;Integrated Security=True"', men jeg tror du mener '<add name="ATNA" connectionString=" Data Source=.\SQLExpress;Initial
+Catalog=XDSRepositoryDB;Integrated Security=True" providerName="System.Data.SqlClient" />'
+- På side 7 står der XDSRegistryOld og ATNAOld, men de 2 strenge er ikke at finde i min fil. Jeg tror du mener: XDSRegistry og ATNA i stedet.
+- Under Test afsnittet på side 7 undlader du at skrive hvilken fil der skal rettes i, men det giver måske sig selv.

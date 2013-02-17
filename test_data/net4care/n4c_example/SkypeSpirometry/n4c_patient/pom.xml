@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+
+  <name>Net4Care SkypeSpirometry Patient</name>
+  <description>The patient can take measurements and send them to a physician</description>
+  
+	<groupId>org.net4care</groupId>
+	<artifactId>n4c_patient</artifactId>
+	<version>0.3-SNAPSHOT</version>
+
+	<packaging>jar</packaging>
+
+	<distributionManagement>
+		<repository>
+			<id>ec2repo</id>
+			<url>http://${ec2.dns}:8083/archiva/repository/snapshots/</url>
+		</repository>
+	</distributionManagement>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.net4care</groupId>
+			<artifactId>n4c_data</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.net4care</groupId>
+			<artifactId>n4c_forwarder</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.net4care</groupId>
+			<artifactId>n4c_skype</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+            <plugin>
+                <artifactId>
+					maven-antrun-plugin
+                </artifactId>
+                <version>
+					1.7
+                </version>
+                <executions>
+                    <execution>
+                        <phase><!-- test --></phase>
+                        <configuration>
+                            <target>
+                                
+                                <property name="runtime_classpath" refid="maven.runtime.classpath" />
+
+                                <path id="class-path" >
+                                
+									<pathelement path="${runtime_classpath}" /> 
+	
+                                </path>
+
+                                <java
+                                    classname="org.net4care.skype.patient.PatientApplication"
+                                    fork="true" >
+                                    <classpath refid="class-path" />
+                                    	<!-- Patient skype account name -->
+	                                    <arg value="" />
+	                                    <!-- Patient skype account password -->
+	                                    <arg value="" />
+	                                    <!-- Physician skype account name -->
+	                                    <arg value="" />
+	                                    <!-- Path to keypair -->
+	                                    <arg value="" />
+                                </java>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal> run </goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+		</plugins>
+	</build>
+
+</project>
+
+

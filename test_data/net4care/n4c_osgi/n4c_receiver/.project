@@ -1,0 +1,20 @@
+<projectDescription>
+  <name>n4c_receiver</name>
+  <comment>NO_M2ECLIPSE_SUPPORT: Project files created with the maven-eclipse-plugin are not supported in M2Eclipse.</comment>
+  <projects>
+    <project>n4c_forwarder</project>
+    <project>n4c_observation</project>
+    <project>n4c_security</project>
+    <project>n4c_serializer</project>
+    <project>n4c_simplestorage</project>
+    <project>n4c_storage</project>
+  </projects>
+  <buildSpec>
+    <buildCommand>
+      <name>org.eclipse.jdt.core.javabuilder</name>
+    </buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+  </natures>
+</projectDescription>

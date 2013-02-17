@@ -1,0 +1,75 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="http://www.net4care.org/alpha/css/apache-maven-fluido.min.css" />
+    
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+    
+    // Load Google Charts and get data when done
+    google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(getData);
+    
+    jQuery.support.cors = true; // force cross-site scripting (as of jQuery 1.5)
+        
+    // Get data from Net4Care Observation service
+    function getData() {
+    	$.ajax({
+                     dataType: ($.browser.firefox) ? "text" : "json",
+                       url: "http://localhost:8080/observation", 
+              data: {
+              QueryType: "PersonTimeQuery",
+                cpr: "251248-4916",
+                format: "application/json",
+                intervalstart: "0",
+                codesystem: "2.16.840.1.113883.6.1",
+                codelist: "|19868-9|20150-9|"},
+              success: function(data){
+              json = new Array();
+              for (i = 0; i < data.length; i++) {
+                observation = jQuery.parseJSON(data[i]);
+                json[i] = [i, 
+                           observation.observationSpecifics[1].fev1.value, 
+                           observation.observationSpecifics[1].fvc.value];  
+              }
+              drawChart(json)
+                },
+              error:function (xhr, ajaxOptions, thrownError){
+              $("#chart_div").replaceWith("<p>(Error in getting data from server)</p>"+thrownError);
+            } 
+          });
+    }
+
+    // Visualize Observation data using Google Charts
+    function drawChart(json) {
+    	var data = new google.visualization.DataTable();
+      data.addColumn('number', 'Time');
+      data.addColumn('number', 'FEV1');
+      data.addColumn('number', 'FVC');
+      data.addRows(json);
+      
+      var options = {
+          width: 400, height: 240,
+          title: 'Spirometry measurements'
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+      chart.draw(data, options);
+    }
+    </script>
+  </head>
+  <body>
+  <h1>Net4Care Observation Server</h1>
+
+  <p>
+    Demonstration of using a simple Java script web page to retrieve
+    JSON coded observations and using Google Graph package to plot them.
+  </p>
+
+  <p>
+    Make sure to have uploaded a few observations using the SwingSpirometry
+    Java program first.
+  </p>
+  <div id="chart_div"></div>
+  </body>
+</html>

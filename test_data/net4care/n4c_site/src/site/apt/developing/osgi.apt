@@ -1,0 +1,281 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+
+Creating a Net4Care OSGi bundle
+~~~~~~~~~~~~~~
+
+ We will create a bundle for storing and retrieving non-health data as
+ an example. The bundle (<<<n4c_simplestorage>>>) will provide an HTTP
+ interface inspired by {{{https://cloudmine.me/developer_zone}
+ CloudMine}}. A storage space can be created by invoking
+
++--
+PUT /simplestorage/<space>
++--
+
+ (with no contents). The space can subsequently be used to store
+ data. Data can be stored by invoking:
+
++--
+POST /simplestorage/<space>/data
+
+{
+  "key_1": "value1",
+  "key_2": ["value2", 12],
+  "key_3": {
+    "id": "value3"
+  }
+}
++--
+
+ Data must be a valid JSON object. Already existing key values are
+ overwritten by new data (e.g., if "key_1" had the value "value0", the
+ new value of "key_1" will be "value1"). To retrieve data, do:
+
++--
+GET /simplestorage/<space>/data/?keys=key_1,key_2
++--
+
+ The result (given the above POST would be):
+
++--
+{
+  "key_1": "value1",
+  "key_2": ["value2", 12]
+}
++--
+
+* Creating a bundle
+
+ In the following, we will assume that development is done in Eclipse
+ and that bundles are built using Maven.
+
+ First, create a Java project (<<<n4_rest>>>) in Eclipse and add an
+ empty class (<<<Protocol>>>). The class should be created in the
+ source folder that Maven expects (<<<src/main/java>>>). In the
+ following, we assume that the fully qualified name of the class is
+ <<<org.net4care.simplestorage.delegate.Protocol>>>.
+
+ Create an appropriate POM file for Maven in the root of the
+ <<<n4c_simplestorage>>> directory:
+
++---
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.net4care</groupId>
+	<artifactId>n4c_simplestorage</artifactId>
+	<version>0.2-SNAPSHOT</version>
+
+	<name>Net4Care Simple Storage Bundle</name>
+
+	<packaging>bundle</packaging>
+
+	<build>
+	  <plugins>
+	    <plugin>
+	      <groupId>org.apache.felix</groupId>
+	      <artifactId>maven-bundle-plugin</artifactId>
+	      <extensions>true</extensions>
+	      <configuration>
+		 <instructions>
+		   <Private-Package>org.net4care.simplestorage.*</Private-Package>
+		 </instructions>
+	      </configuration>
+	    </plugin>
+	  </plugins>
+	</build>
+</project>
++---
+
+ The POM file defines the project as being in the <<<org.net4care>>> group (cf. the <<<<groupId>>>> tag), with the artefact id <<<n4c_simplestorage>>> (<<<<artifactId>>>>) in version <<<0.2-SNAPSHOT>>>(<<<<version>>>>). 
+
+ The plugin used (<<<org.apache.felix>>>'s <<<maven-bundle-plugin>>>)
+ allows the packaging type <<<bundle>>>. The instructions for the
+ plug-in, in this case, says that the bundle should include the
+ classes in the <<<org.net4care.simplestorage>>> package and that
+ these should not be visible to other bundles (as defined by
+ <<<<Private-Package>>>>). For a full explanation of the Maven bundle
+ plugin, see its
+ {{{http://felix.apache.org/site/apache-felix-maven-bundle-plugin-bnd.html}website}}
+ and in particular the website of the underlying tool,
+ {{{http://www.aqute.biz/Bnd/Format}BND}}.
+
+ Next, you may build the bundle:
+
++---
+$ mvn package
++---
+
+ Additionally to create an Eclipse project for the bundle, do:
+
++---
+$ mvn eclipse:eclipse
++---
+
+ Adding the {{{http://www.ops4j.org/projects/pax/construct/maven-pax-plugin/}Maven PAX plugin}} to the POM:
+
++---
+      <plugin>
+        <groupId>org.ops4j</groupId>
+        <artifactId>maven-pax-plugin</artifactId>
+      </plugin>
++---
+
+ we may also launch an OSGi framework (Apache Felix per default) and
+ with the bundle installed and started:
+
++---
+$ mvn install pax:provision
+
+g! lb
+START LEVEL 6
+   ID|State      |Level|Name
+    0|Active     |    0|System Bundle (4.0.2)
+    1|Active     |    5|Net4Care Simple Storage Bundle (0.2.0.SNAPSHOT)
++---
+
+
+*  Implementing web service functionality
+
+ We will implement the <<<n4c_simplestorage>>> service as a
+ <<<javax.servlet.http.HttpServlet>>>. In order to do that, we need to
+ add a dependency to an HTTP server bundle (we will use
+ {{{http://jetty.codehaus.org/jetty/}Jetty}} here). This is done in
+ the POM:
+
++--
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.http.jetty</artifactId>
+      <version>2.2.0</version>
+    </dependency>
+  </dependencies>
++--
+
+ This dependency will transitively fetch the needed OSGi definitions,
+ including the definition of the <<<HttpService>>> that the Jetty
+ bundle exposes. 
+
+ To simplify bundle configuration, we will use OSGi Declarative
+ Services that allows us to declare a class (<<<Protocol>>> in this
+ case) as a component that is instantiated when the bundle is
+ started. We then need a dependency reference to the
+ Service Component Runtime:
+
++--
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.compendium</artifactId>
+      <version>4.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.scr</artifactId>
+      <version>1.6.0</version>
+    </dependency>
++--
+
+ Furthermore, we configure the bundle metadata:
+
++--
+		<instructions>
+		       <Private-Package>org.net4care.simplestorage.delegate</Private-Package>
+                     <Service-Component>
+                       org.net4care.simplestorage.delegate.Protocol;
+                       immediate:=true;
+                       http=org.osgi.service.http.HttpService
+                    </Service-Component>
+  	       </instructions>
++--
+
+ Here, <<<http=org.osgi.service.http.HttpService>>> means that, at
+ runtime, the method <<<Protocol.setHttp>>> will be called with an
+ instance of type <<<HttpService>>>. (This is handled by OSGi's Declarative Services. For more information see the {{{http://www.aqute.biz/Bnd/Components}
+ Bnd}} documentation.)
+
+ A trivial implementation of the Protocol may be
+
++--
+package org.net4care.simplestorage.delegate;
+
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.osgi.service.http.HttpService;
+import org.osgi.service.http.NamespaceException;
+
+public class Protocol extends HttpServlet {
+  private static final long serialVersionUID = 1L;
+
+  public void setHttp(HttpService http) throws ServletException, NamespaceException {
+    http.registerServlet("/simplestorage", this, null, null);
+  }
+  
+  public void unsetHttp(HttpService http) throws ServletException, NamespaceException {
+    // Do nothing; deregistration is handled by OSGi
+  }
+  
+  @Override
+  protected void doPut(HttpServletRequest req, HttpServletResponse resp)
+  throws ServletException, IOException {
+    System.out.println("PUT");
+  }
+
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+  throws ServletException, IOException {
+    System.out.println("GET");
+  }
+
+  @Override
+  protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+  throws ServletException, IOException {
+    System.out.println("POST");
+  }
+}
++--
+
+ This implementation may then be tested by invoking (in a terminal):
+
++---
+$ mvn install pax:provision
++---
+
+ and in another terminal (on Linux/Mac):
+
++---
+$ curl -X PUT http://localhost:8080/simplestorage/myspace
++---
+
+* Lifecycle-specific methods
+
+ To enable behavior that depends on the life-cycle of a bundle, you may implement an <<<activate>>> method (and correspondingly a <<<deactivate>>> method):
+
++---
+  protected void activate(ComponentContext context) {
+    System.out.println("Activated");
+  }
+
+  protected void deactivate(ComponentContext context) {
+    System.out.println("Deactivated");
+  }
++---
+
+* Next steps
+
+ The next steps include implementing the actual storage and retrieval
+ functionality and implement tests. 
+
+~~The final bundle can be found in {{{https://svn.nfit.au.dk/svn/net4care/trunk/src/net4care/n4c_osgi/n4c_simplestorage}the Net4Care repository}}.

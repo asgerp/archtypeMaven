@@ -1,0 +1,87 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+
+Notes on creating a Net4Care-friendly EC2 instance
+~~~~~~~~~~~~~~
+
+  An Amazon EC2 standard instance was used as a basis. The following
+  steps needed to be taken for the instance:
+
+  * Install Java SDK on the instance
+
+  * Install Maven on the instance
+
+  * Configure the firewall on the running instance (may not be needed)
+
+ Some notes on these steps are given below.
+
+ Following the steps, a new image may be created from the EC2 management console.
+
+* Install Java on the instance
+~~~~~~~~~~~~~~~
+
+  Java can be installed by using RPM:
+
++----+
+ wget http://download.oracle.com/otn-pub/java/jdk/7u2-b13/jdk-7u2-linux-x64.rpm
+ sudo rpm --install jdk-7u2-linux-x64.rpm
++----+
+
+Change JAVA_HOME to point to the correct place (in .bashrc):
+
++---+
+export JAVA_HOME=/usr/java/default/
++---+
+
+* Install subversion
+~~~~~~~~~~~~~~~
++----+ 
+ sudo yum install subversion.x86_64
++----+
+
+
+* Install Maven on the instance
+~~~~~~~~~~~~~~~~~~~~~~
+
+  Download Maven, unzip, and move: 
+
++-----+
+ wget http://www.apache.org/dist//maven/binaries/apache-maven-3.0.3-bin.tar.gz
+ tar xfz apache-maven-3.0.3-bin.tar.gz
+ mv apache-maven-3.0.3 /usr/local/
++-----+
+
+  Modify .bashrc to set PATH such that Maven can be used, i.e., add the following lines:
+
++-----+
+ export M2_HOME=/usr/local/apache-maven-3.0.3
+ export PATH=${M2_HOME}/bin:${PATH}
++-----+
+
+* Install Net4Care
+~~~~~~~~~~~~~~
+ Checkout Net4Care anonymously and build
+
++---+
+ https://svn.nfit.au.dk/svn/net4care/trunk/src/net4care
+ cd net4care
+ mvn install
++---+
+
+* Configure firewall
+~~~~~~
+
+ Edit the iptables file (/etc/sysconfig/iptables) to add the following INPUT accept:
+
++----+
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 8080 -j ACCEPT
++----+
+
+ (before the rejects start) and restart the firewall:
+
++---+
+ service iptables restart
++---+

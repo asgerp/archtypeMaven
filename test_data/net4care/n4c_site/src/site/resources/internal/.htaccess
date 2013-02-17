@@ -1,0 +1,4 @@
+AuthUserFile /web/net4care/public_html/alpha/internal/.htpasswd
+AuthType Basic
+AuthName "Protected"
+Require valid-user

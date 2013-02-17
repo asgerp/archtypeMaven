@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="**/*.java" kind="src" path="src/main/resources"/>
+	<classpathentry kind="var" path="M2_REPO/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/hamcrest/hamcrest-core/1.1/hamcrest-core-1.1.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/codehaus/jackson/jackson-core-asl/1.9.2/jackson-core-asl-1.9.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/codehaus/jackson/jackson-mapper-asl/1.9.2/jackson-mapper-asl-1.9.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty/6.1.24/jetty-6.1.24.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty-sslengine/6.1.24/jetty-sslengine-6.1.24.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty-util/6.1.24/jetty-util-6.1.24.jar"/>
+	<classpathentry kind="var" path="M2_REPO/junit/junit/4.10/junit-4.10.jar"/>
+	<classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.16/log4j-1.2.16.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/net4care/n4c_forwarder/0.1-SNAPSHOT/n4c_forwarder-0.1-SNAPSHOT.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/net4care/n4c_observation/0.1-SNAPSHOT/n4c_observation-0.1-SNAPSHOT.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/net4care/n4c_receiver/0.1-SNAPSHOT/n4c_receiver-0.1-SNAPSHOT.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/net4care/n4c_serializer/0.1-SNAPSHOT/n4c_serializer-0.1-SNAPSHOT.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/net4care/n4c_storage/0.1-SNAPSHOT/n4c_storage-0.1-SNAPSHOT.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/xerial/thirdparty/nestedvm/1.0/nestedvm-1.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/felix/org.apache.felix.http.api/2.2.0/org.apache.felix.http.api-2.2.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/felix/org.apache.felix.http.base/2.2.0/org.apache.felix.http.base-2.2.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/felix/org.apache.felix.http.jetty/2.2.0/org.apache.felix.http.jetty-2.2.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/felix/org.apache.felix.scr/1.6.0/org.apache.felix.scr-1.6.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/osgi/org.osgi.compendium/4.2.0/org.osgi.compendium-4.2.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/ops4j/pax/logging/pax-logging-api/1.6.4/pax-logging-api-1.6.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/ops4j/pax/logging/pax-logging-service/1.6.4/pax-logging-service-1.6.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/servlet-api/2.5-20081211/servlet-api-2.5-20081211.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/xerial/sqlite-jdbc/3.6.16/sqlite-jdbc-3.6.16.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="var" path="M2_REPO/com/smb/n4c_data/0.3-SNAPSHOT/n4c_data-0.3-SNAPSHOT.jar"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>

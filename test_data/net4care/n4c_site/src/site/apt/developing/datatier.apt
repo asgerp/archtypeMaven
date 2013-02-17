@@ -1,0 +1,285 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+
+Data Tier
+~~~~~~~~~~~~~~
+  
+  The Net4Care server receives observations and queries and depends
+  upon the data tier to provide storage and retrieval. 
+
+  The data tier is designed to store observations using the Personal
+  Health Monitoring Record (PHMR) format which is a HL7 Clinical
+  Document Architecture format. This format has been choosen as it is
+  an international standard adopted by Continua Alliance, and thus
+  a chance that future EHR and GP systems in Denmark will be able to
+  read these observations.
+
+  As storage tier Net4Care is designed to use Cross-Enterprise
+  Document System (XDS). XDS is an IHE standard that allows many large
+  volume document repositories to be indexed by a single registry.
+
+  As explained in the "Configuring Net4Care" the server is by default
+  configured with a much simpler data tier, using a SQLite
+  database. This is to facilitate easy experimentation.
+
+  Below we describe some notes and experiences of PHMR and XDS. The
+  treatment is not comprehensive, for further information, contact the
+  Net4Care team.
+
+PHMR: Personal Health Monitoring Record
+~~~~~~~~~~~~~~
+
+  The Net4Care framework stores observations in the HL7 format
+  <<Personal Health Monitoring Record>> (PHMR).
+
+  Quite a lot of effort has been invested in the project in order to
+  understand the underlying HL7 format and the specific PHMR
+  specialization. The following guide is an attempt to convey our
+  effort to climb the rather steep learning curve in the hope that
+  someone will be able to climb it faster than we did.
+
+  Please observe that the following bits-and-pieces of informations
+  and advice reflect our understanding and may be flawed, and also
+  that our aim has been very specific (storing measured clinical
+  values) and thus does not reflect the versatility of the HL7
+  standard.
+
+The foundation: HL7
+~~~~~~~~~~~~~~~~~~~
+
+  Information resources:
+
+   * www.hl7.org
+  
+   * <<Principles of Health Interoperability - HL7 and SNOMED>>, Tim
+     Benson, Springer-Verlag 2010.
+
+   * <<The CDA Book>>, Keith W. Boone, Springer-Verlag 2011.
+
+
+The PHMR
+~~~~~~~~~~~~~~~~~~~
+
+   References to the specifications of PHMR:
+
+   {{http://wiki.hl7.org/index.php?title=Product_CDA_R2_IG#Product_Name_-_CDA_R2_IG_PHM_Reports}}
+
+  {{http://www.hl7.org/dstucomments/index_expired.cfm}} - look under
+  October 2010.
+
+  To download it you have to be member of HL7.
+
+* Implementation Help
+
+  We had trouble finding a schema of the PHMR XML format but finally
+  dug one out. The following is part of the README for our
+  architectural prototype that exercise the format. (You can obtain
+  the prototype code from the Net4Care team.)
+
+----
+Source of Schema
+================
+
+https://github.com/krasserm/ipf
+
+Choose 'zip' button to get a zip of all the code for the openehealth.org.
+
+The 'schema' directory is picked from that zip. There are several copies,
+I took the 'cda' folder.
+
+What
+====
+
+Run 'ant test' to run a simple demo program that unmarshalls
+one of the PHMR xml files in the resource directory, using the
+JAXB validation to report any defects in the XML.
+
+CHANGES TO THE SCHEMAS
+======================
+
+Trying to make the JAXB compiler eat the CDA schema, it chokes on multiple
+definitions of 'ID'. This issue has to be resolve by MANUAL changes to
+the schema files.
+
+Googling for an answer, I found this one:
+
+http://markmail.org/message/yprfd7pkyf2ngqr3#query:+page:1+mid:d24m6bog5c6wtw5e+state:results
+
+[contents pasted in the end of this README]
+
+Look at the last recommendation in this tread, which is incoorporated in the 
+
+schema/cdar2/infrastructure/cda/POCD_MT0000040.xds file.
+
+(Marked by comments containing the word FIX).
+
+Thereafter the following command has been given
+
+xjc -extension -d src schema\cdar2\infrastructure\cda\CDA.xsd
+
+which generates the src\org\hl7 classes.
+
+PROBLEMS WITH JAVA 1.6
+======================
+
+Java 1.6 apparently uses JAXB 2.1 which does not know the 'required()' method.
+The result is that the generated files will NOT compile.
+
+This is fixed using 'endorsed libraries'
+
+See http://www.java.net/node/700048
+
+http://shankarkrishnan.wordpress.com/2010/05/05/jaxb-error-cannot-find-symbol-method-required/
+
+I made it work by:
+
+a) copy the jaxb jar file found in lib into a folder named $JAVA_HOME\jr\lib\endorsed
+
+(do not paste it into the windows installed jre folder if your Ant distribution
+uses the JAVA_HOME installed SDK instead!)
+
+CONTENTS OF THE MARKMAIL.ORG PROBLEM SOLUTION
+============================================
+
+The problem with this hack is that CDA document instances may no
+longer be valid since you are changing schema itself. A better
+solution is to use JAXB binding customizations to tell JAXB to bind
+the ID attribute to a different name in the generated Java code. For
+each of these three ID attributes add this annotation:
+
+<xs:attribute name="ID" type="xs:ID"> <xs:annotation> <xs:appinfo> <jaxb:property name="ID1"/> </xs:appinfo> </xs:annotation> </xs:attribute>
+
+And at the top of the POCD_MT000040.xsd add JAXB namespaces so it looks like
+this:
+
+<xs:schema targetNamespace="urn:hl7-org:v3" xmlns:mif="urn:hl7-org:v3/mif" xmlns="urn:hl7-org:v3" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" elementFormDefault="qualified" jaxb:version="1.0" jaxb:extensionBindingPrefixes="xjc">
+
+Finally be sure to add -extension switch to xjc, and poof, now you get a
+workable set of JAXB Java objects that works with CDA schema compliant document
+instances. [Message sent by forum member 'mgpotter' (mgpotter)]
+
+http://forums.java.net/jive/thread.jspa?messageID=303995 
+----
+
+
+XDS implementation
+~~~~~~~~~~~~~~~~~~~
+
+  Overview information on XDS can be found at {{http://wiki.ihe.net/index.php?title=Cross-Enterprise_Document_Sharing}}.
+
+  We have proof-of-concept end-to-end scenarios running on a Microsoft
+  open source XDS. To experiment you need to:
+
+  * Download and install MS XDS. This is an open source, free,
+  implementation available on CodePlex:
+  {{http://ihe.codeplex.com/}}. Our code is based upon the January
+  2012 release.
+
+  * Optionally follow the alternative
+  {{{../notes/xds_konfigurationsvejledning.pdf}XDS konfigurationsvejledning}} by Ivan Overgaard, Silverbullet. (The
+  guide is in Danish.) It explains how the XDS registry and repository
+  to be run in debug mode in Visual Studio.
+
+  * If you use the guide above, the following minor corrections have
+    been spottet by our programmer, Morten
+    Larsson. {{{../notes/xds_remarks.txt}XDS remarks}}
+
+  * Enter proper person ids in table XDSRegistryDB.dbo.Patient,
+  attribute patientUID, using SQL Manager. The XDS Registry will not
+  accept documents for a person whose ID is unknown. To review
+  existing ID's, you may 
+
++---
+SELECT TOP 1000 [patientID],[patientUID]
+  FROM [XDSRegistryDB].[dbo].[Patient] 
++---
+
+  * Follow the script below to incrementally validate your setup and
+  test end-to-end scenarios.
+
+
+---
+Validate setup:
+===============
+
+ Validation Step 1:
+ ------------------
+
+*) get ip address of running machine (Ex: 10.11.109.50)
+*) validate that machine is accessible / open in browser:
+  http://10.11.109.50:1025/XdsService/XdsRegistry?wsdl
+  http://10.11.109.50:1026/XdsService/XdsRepository?wsdl
+
+Better though: use the domain name:
+
+  http://n4cxds.nfit.au.dk:1025/XdsService/XdsRegistry?wsdl
+  http://n4cxds.nfit.au.dk:1026/XdsService/XdsRepository?wsdl
+
+Validate that you get the WSDL files back from the server.
+
+ Validation Step 2:
+ ------------------
+
+Valiate codeplex apadater is working:
+
+*) Execute JUnit test in
+ /n4c_test/src/main/java/org/net4care/manualtest/TestXDSAdapterRoundTripScenario.java
+
+(Ensure that the HostSpecification.setHost(...) is properly set to identify the
+IP address of the machine on which the XDS is running.)
+
+ Validation Step 3:
+ ------------------
+
+1)
+Run the manually configured server 'ServerMain' at
+  /n4c_test/src/main/java/org/net4care/main/ServerMain.java
+using the run-server.bat in n4c_test
+
+(Ensure that the HostSpecification.setHost(...) is properly set to identify the
+IP address of the machine on which the XDS is running.)
+
+2)
+Run the manual testing program using the run-manual-test.bat in n4c_test:
+
+  a) change server to 'localhost:8082' using the radiobuttons
+  b) 'open console' on the XDS VMware image and clear all visible exchanges in
+     membrane
+  c) simulate a spirometry reading and upload it to the server
+  d) verify that a single message appears on the membrane window
+     (takes a loooong time the first time around - do not know why)
+  e) change the format to PHMR
+  f) Retrieve observations
+---
+
+  We have VMWare snapshots with an operational Codeplex running.
+
+  We also have a running XDS on CS Aarhus University server farm
+  (n4cxds.nfit.au.dk) but it is currently behind our firewall.
+
+Limitations
+~~~~~~~~~~~~~~~~
+
+  There are many limitations in the current setup.
+
+  * The HL7 OIDs in the PHMR are rooted in a Net4Care OID. Thus we
+  have just invented OIDs for selected entities. See the Codes.java
+  file for a list of these.
+
+  * The HL7 Author tag is defined by a 'treatment ID' that is sent
+  from the home client and translated in the server. The current
+  translation is a fake translation as it always identifies the same
+  clinician at Skejby Sygehus.
+
+  * The MS Codeplex adapter code that generates ebXML SOAP messages
+  for the XDS registry is desperately in need of clean up, and defines
+  many ebXML (key,value) pairs to dummy values.
+
+  * Moreover, only one of the three query types of the Net4Care
+  framework is implemented in the Codeplex adapter
+  (person+timeinterval).
+
+

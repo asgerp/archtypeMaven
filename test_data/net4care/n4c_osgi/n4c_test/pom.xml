@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.net4care</groupId>
+  <artifactId>n4c_test</artifactId>
+  <version>${project.parent.version}</version>
+  
+  <name>Net4Care Test Bundle</name>
+  
+  <packaging>bundle</packaging>
+  
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <org.apache.sling.commons.log.file>net4care.log</org.apache.sling.commons.log.file>
+    
+  </properties>
+  
+  <parent>
+    <groupId>org.net4care</groupId>
+    <artifactId>n4c_osgi_parent</artifactId>
+    <version>0.3-SNAPSHOT</version>
+    <relativePath>../parent</relativePath>
+  </parent>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.net4care</groupId>
+      <artifactId>n4c_observation</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.net4care</groupId>
+      <artifactId>n4c_forwarder</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.net4care</groupId>
+      <artifactId>n4c_serializer</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.net4care</groupId>
+      <artifactId>n4c_storage</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.net4care</groupId>
+      <artifactId>n4c_receiver</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.net4care</groupId>
+      <artifactId>n4c_graph</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.net4care</groupId>
+      <artifactId>xdsb_codeplex</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.commons.log</artifactId>
+      <version>2.1.2</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xerial</groupId>
+      <artifactId>sqlite-jdbc</artifactId>
+      <version>3.6.16</version>
+    </dependency>
+    <!-- HBC : Why is this necessary ??? -->
+    <dependency>
+      <groupId>javax.mail</groupId>
+      <artifactId>mail</artifactId>
+      <version>1.4.5-rc1</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.activation</groupId>
+      <artifactId>activation</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+  </dependencies>
+  
+
+  <profiles>
+     <profile>
+       <id>ci</id>
+       <build>
+	       <plugins>
+			<plugin>
+			    <groupId>org.codehaus.gmaven</groupId>
+			    <artifactId>gmaven-plugin</artifactId>
+			    <version>1.4</version>
+			    <executions>
+			        <execution>
+			            <phase>initialize</phase>
+			            <goals>
+			                <goal>execute</goal>
+			            </goals>
+			            <configuration>
+			                <source><![CDATA[
+			                    
+			                    import java.util.*;
+								import java.lang.*;
+								import java.net.*;
+								import java.net.URL;
+	
+								pom.properties['exec_extension'] = System.getProperty("os.name").contains('Windows') ? '.bat' : '';
+								
+								import java.net.HttpURLConnection;
+
+
+
+								HttpURLConnection httpUrlConn;
+								try {
+									httpUrlConn = (HttpURLConnection) new URL("http://localhost:8080/observation")
+											.openConnection();
+						
+									httpUrlConn.setRequestMethod("HEAD");
+						
+									// Set timeouts in milliseconds
+									httpUrlConn.setConnectTimeout(300);
+						
+						
+									if (httpUrlConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+									    pom.properties['server_already_running'] = "true";
+									    System.out.println("--------------------------------------------------------------")
+                               			System.out.println("------------------!!!!    NOTICE    !!!!----------------------")
+                               			System.out.println("--------------------------------------------------------------")
+                               			System.out.println("-- A server was already running before the integration test --")
+                               			System.out.println("-- Shut down the server occupying                           --")
+                               			System.out.println("-- http://localhost:8080/observation and try again          --")
+                               			System.out.println("--------------------------------------------------------------")
+									}
+									System.exit(0);
+								} catch (Exception e) {
+									pom.properties['server_already_running'] = "false";
+									System.out.println(e.getMessage());
+								}
+
+								
+			                ]]></source>
+			            </configuration>
+			        </execution>
+			    </executions>
+			   </plugin>
+				<plugin> 
+				<groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-antrun-plugin</artifactId>
+			    <version>1.7</version>
+			    <dependencies>
+			    <dependency>
+					<groupId>ant-contrib</groupId>
+					<artifactId>ant-contrib</artifactId>
+					<version>20020829</version>
+				</dependency>
+				</dependencies>
+			        <executions>
+			          <execution>
+			          <id>pre-integration-test</id>
+			            <phase>pre-integration-test</phase>
+			            <configuration>
+			              <target>
+			                  <echo>Deleting n4c_receiver/runner/xds.db</echo>
+			                  
+			                  <!-- adds the ant-contrib tasks (if/then/else used below) -->
+	                          <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+	                          
+	                           
+							  <available file="${basedir}/../n4c_receiver/runner/xds.db" property="file.exists" value="true" />
+	
+	                          <if>
+	                              <not>
+	                                    <isset property="file.exists" />
+	                              </not>
+	                              <then>
+	                                    <echo>No file to delete</echo>
+	                              </then>
+	                              <else>
+		                               	<delete file="${basedir}/../n4c_receiver/runner/xds.db"/>
+		                               	<echo>xds.db successfully deleted</echo>
+	                              </else>
+	                          </if>
+			              	  
+	                          
+	
+							  <exec id="server" dir="${basedir}/../n4c_receiver" executable="mvn${exec_extension}" spawn="true">
+							  	 <arg value="-P" />
+							  	 <arg value="ci" />
+							     <arg value="pax:provision" />
+							  </exec>  
+							  <echo>-----------------</echo>
+							  <echo> Starting Server </echo>
+							  <echo>-----------------</echo>
+							  <echo></echo>
+							  <echo>Sleeping for 10 seconds to let the server warm up</echo>
+							  <sleep seconds="10"/>
+							  <property name="test_classpath" refid="maven.test.classpath" />
+	
+	                           <path id="class-path" >
+									<pathelement path="${test_classpath}" /> 
+	                           </path>
+							  <java classname="org.net4care.integration.UploadData"	>
+							      <classpath refid="class-path" /> 
+							  </java>
+			              </target>
+			            </configuration>
+			            <goals>
+			              <goal>run</goal>
+			            </goals>
+			          </execution>
+			        </executions>
+	         	</plugin> 
+				<plugin>
+			        <groupId>org.codehaus.mojo</groupId>
+			        <artifactId>exec-maven-plugin</artifactId>
+			        <version>1.2.1</version>
+				    <executions>
+				        <execution>
+				            <phase>post-integration-test</phase>
+				            <goals>
+				                <goal>java</goal>
+				            </goals>
+				            <configuration>
+	          					<mainClass>org.net4care.receiver.rmi.RMIClient</mainClass>
+				            </configuration>
+				        </execution>
+				      </executions>
+      			</plugin>
+
+				<plugin>
+				 <artifactId>maven-failsafe-plugin</artifactId>
+				 <version>2.12</version>
+				<dependencies>	
+		  			<dependency>
+				         <groupId>org.apache.maven.surefire</groupId>
+				         <artifactId>surefire-junit47</artifactId>
+				         <version>2.12</version>
+		  			</dependency>
+				</dependencies>
+			    <configuration>
+			        <groups>org.net4care.integration.IntegrationTest</groups>
+			    </configuration>
+			    <executions>
+			        <execution>
+			            <goals>
+			                <goal>integration-test</goal>
+			            </goals>
+			            <configuration>
+			                <includes>
+			                    <include>**/*.class</include>
+			                </includes>
+			            </configuration>
+			        </execution>
+			    </executions>
+				</plugin>  
+			 </plugins>
+		 </build>
+      </profile>
+  </profiles>
+  
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>2.3.7</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Private-Package>org.junit.*,junit.runner.*,junit.*,org.hamcrest.*,org.net4care.*
+						</Private-Package>
+						<Embed-Dependency>junit</Embed-Dependency>
+						<Service-Component>org.net4care.test.TestRunner; immediate:=true
+						</Service-Component>
+						<!-- Need to export this for n4c_serializer to be able to import it -->
+						<Export-Package>com.smb.homeapp.*</Export-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.4.1</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>.</directory>
+							<includes>
+								<include>*.db</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+			<!--*********************************************-->
+            <!--*  Integration test exclusion configuration *-->
+            <!--*********************************************-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit47</artifactId>
+                        <version>2.12</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <useFile>false</useFile>
+					<includes>
+						<include>**/*.class</include>
+					</includes>
+                    <excludedGroups>org.net4care.integration.IntegrationTest</excludedGroups>
+                </configuration>                
+             </plugin>
+	  </plugins>
+	</build>
+
+</project>

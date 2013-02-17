@@ -1,0 +1,92 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+
+Deploy self-signed HTTPS security in the Net4Care server
+~~~~~~~~~~~~~~
+
+ This tutorial explains how to create a self-signed SSL security certificate and implement it in the Net4Care server. Note that the self-signed certificated are to be used for testing purposes. A production SSL certificate should be signed by a verified certificate authority ({{{http://en.wikipedia.org/wiki/Certificate_authority}CA}}). A more detailed guide on how to create SSL certificates cane be found {{{http://docs.codehaus.org/display/JETTY/How+to+configure+SSL}here}}
+The SSL Net4Care server is achieved in the following steps:
+
+
+*   Create the the certificate.
+
+      To create the SSL certificate, run the following command in the terminal/command line:
+
++--
+keytool -keystore keystore -alias jetty -genkey -keyalg RSA
++--
+
+	keytool will ask for some additional information to attach to the certificate.
+
++--
+$ keytool -keystore keystore -alias jetty -genkey -keyalg RSA
+Enter keystore password:  
+Re-enter new password: 
+What is your first and last name?
+  [Unknown]:  net4care.dk
+What is the name of your organizational unit?
+  [Unknown]:  net4care
+What is the name of your organization?
+  [Unknown]:  Caretech Innovation
+What is the name of your City or Locality?
+  [Unknown]:  
+What is the name of your State or Province?
+  [Unknown]:  
+What is the two-letter country code for this unit?
+  [Unknown]:  dk
+Is CN=net4care.dk, OU=net4care, O=Caretech Innovation, L=Unknown, ST=Unknown, C=dk correct?
+  [no]:  y
+
+Enter key password for <jetty>
+	(RETURN if same as keystore password):  
++--
+
+	This will create a file called <keystore> that is the certificate file.
+
+** Installing the SSL certificate
+
+
+   In order to configure net4care to run in HTTPS edit the pom.xml file located under ~/net4care/n4c_osgi/n4c_reciver and add the following lines between the <\<properties\>> tags:
+
++---
+	<org.apache.felix.https.enable>true</org.apache.felix.https.enable>
+    	<org.apache.felix.http.enable>true</org.apache.felix.http.enable>    		
+	<org.osgi.service.http.port>8080</org.osgi.service.http.port>
+	<org.osgi.service.http.port.secure>8443</org.osgi.service.http.port.secure>
+    	<org.apache.felix.https.keystore>path/to/keystore</org.apache.felix.https.keystore>
+    	<org.apache.felix.https.keystore.password>xxxx</org.apache.felix.https.keystore.password>
+	
++--- 
+
+     The first two lines enable the HTTP and HTTPS services while the next two define the ports for HTTP and HTTPS. The path to the keystore certificate is defined with the org.apache.felix.https.keystore tag.
+
+     Save the file and close. To start the server use the maven command under the net4care/n4c_osgi/n4c_reciver:
+
++--
+mvn pax:provision
++--
+
+	If the server is running, a message that Jetty has started and the ports that the servers is running should appear close to the end of the maven output:
+
++--
+Welcome to Apache Felix Gogo
+
+g! [FelixStartLevel] INFO org.ops4j.pax.logging.internal.Activator - Enabling SLF4J API support.
+[FelixStartLevel] INFO org.ops4j.pax.logging.internal.Activator - Enabling Jakarta Commons Logging API support.
+[FelixStartLevel] INFO org.ops4j.pax.logging.internal.Activator - Enabling Log4J API support.
+[FelixStartLevel] INFO org.ops4j.pax.logging.internal.Activator - Enabling Avalon Logger API support.
+[FelixStartLevel] INFO org.ops4j.pax.logging.internal.Activator - Enabling JULI Logger API support.
+[Jetty HTTP Service] INFO org.apache.felix.http.jetty - Started jetty 6.1.x at port(s) HTTP:8080 HTTPS:8443
+[FelixStartLevel] INFO org.net4care.receiver.delegate.StandardHttpServlet - Net4Care observation server started on /observation
+
++--
+
+	The server can be testing by directing to the browser to http://localhost:8080/observation and https://localhost:8443/observation .  Please note that since the certificate in self signed the acceptance and not CA has signed it, the browser will not recognize the certificate as an appropriate named SSL sertificate. In order to procede, you will have to accept the sertificate in the browser (click to the "Proced anyway").
+
+
+
+
+

@@ -1,0 +1,198 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+
+Configuring the framework
+~~~~~~~~~~~~~~
+
+  The architecture is designed following compositional
+  principles. This means that the architecture defines some <roles>
+  and provides some <default implementations> of these roles. It also
+  means you have to tell which objects to play which roles at start-up
+  time in both client and server using <dependency injection>. This
+  way you can configure a full production environment (HTTP
+  connections to central servers that communicate with a XDS backend)
+  or a full testing environment (local method call connections to a
+  simulated in-process server taht communicate with an in-memory
+  database) just by choosing which implementations to compose.
+
+  Below examples will be given of configuring the roles using standard
+  java parameter passing. Another way is to use the OSGi dependency
+  injection technique which again can be configured in Maven's POM
+  files. This tutorial only treats the former which is used in the
+  learing- and unit tests that are found in the n4c_test folder.
+
+  The flexiblity allows defining a very simple test environment as the
+  framework provides simple stub (or more correctly
+  {{{http://xunitpatterns.com/Fake%20Object.html}"fake object"}}
+  {{[1]}}) implementations of several roles as well as implementations
+  that eliminates the need to set up a distributed environment.
+
+  The following diagram shows a Component-Connector view of the
+  central run-time passive objects (boxes) and processes (boxes with
+  double lines left and right). Lines between objects means exchange
+  of data and/or flow at run-time.
+
+[../images/n4c-cc-detailed.gif] The CC diagram of Net4Care framework
+
+  The following roles are central to configure:
+
+  * <Serializer> (Both client- and server-side role): The
+    marshalling/demarshalling role that can convert
+    StandardTeleObservations to and from the string format used for
+    transport between clients and servers. <<Default:
+    JacksonJSONSerializer>>.
+
+  * <ServerConnector> (Client-side role): The client side connection
+    role that ensures the string is transmitted over the network from
+    the client to the server and a result is received. <<Default:
+    HTTPConnector>> <Testing: LocalSynchroneousCallConnector>.
+
+  * <ExternalDataSources> (Server-side role): The role of external
+    sources of data needed to generate e.g. HL7 documents. Provides a
+    proxy for the Danish CPR-register and some (at the moment
+    ill-specificed) way to access the data of the physician that
+    issued a request for the given observations to be made by the
+    patient. <<Default: FakeObjectExternalDataSources>>> <Testing:
+    FakeObjectExternalDataSources>. 
+
+  * <XDSRepository> (Server-side role): The proxy to the XDS
+    repository and registry that stores the observations produced in
+    HL7 format, accessible by regional and national Electronic
+    Healthcare Record (EHR) systems. <<Default: SQLiteXDSRepository>>
+    <Testing: SQLiteXDSRepository or
+    FakeObjectExternalDataSources>>. Alternatives:
+    MSCodeplexAdapter (Works but has limited feature as it does not
+    support all queries.)
+
+  * <ObservationCache> (Server-side role): A local server side cache
+    of all transmitted observations for the last N days, allowing fast
+    retrieval of these by the client. <<Default: SQLiteXDSRepository>> <Testing:
+    SQLiteXDSRepository or FakeObjectExternalDataSources> (Note:
+    SQLiteXDSRepository also implements the ObservationCache interface
+    and thus plays both roles in a testing environment.)
+
+ Above <<Default>> and <Testing> are used to denote which classes in
+ the framework are the default (used for "production" code) and
+ testing (used for "testing" code) implementations. If "none" is
+ specified there are no implementations yet, use the testing classes
+ instead.
+
+
+Example
+~~~ 
+
+ The following code shows a typical setup for initial development of a
+ home application as the server code is simulated by local in-process
+ objects (TestUploadAndStorage.java / revision 927):
+
++------------------------------------------------------------+
+  @Before
+  public void setup() throws Net4CareException {
+    // Common roles - both server and client side must of course agree
+    // upon the way StandardTeleObservations are serialized...
+    serializer = new JacksonJSONSerializer();
+
+    // Due to the 'local method call' connector used by the
+    // client, I have to define
+    // the server side 'receiver' role first in order to pass it
+    // as reference to the client side...
+
+    // Server side and data tier roles
+    
+    // -- Use the fast in-memory databases
+    xds = new FakeObjectXDSAndObservationCache();
+    
+    // -- ALTERNATIVE: use a persistent XDS based upon SQLite SQL database
+    // xds =  new SQLiteXDSRepository("db-tuas.db"); 
+    
+    xds.connect();
+    // Clean the database as we otherwise get entries
+    // with the same timestamp between runs of the testcase
+    xds.utterlyEmptyAllContentsOfTheDatabase();
+    
+    // -- use a fake object implementation of the external data sources
+    externalDatasources = new FakeObjectExternalDataSource();
+    // -- SQLiteXDSRepository also serves as ObservationCache!
+    cache = (ObservationCache) xds;
+    // -- and configure the server side's receiver object with
+    // the proper delegates...
+    
+  //Set the server to use the ServerJSONSerializer instead.
+    Serializer serverSerializer = new ServerJSONSerializer();
+    
+    receiver = new StandardObservationReceiver( serverSerializer, 
+                                                externalDatasources, 
+                                                xds, cache );
+    // Client side roles
+    // -- use a connector to the server that is simply method call
+    connector = new LocalSynchroneousCallConnector( receiver );
+    // -- and configure the data uploader (forwarder) with
+    // these delegates.
+    uploader = new StandardDataUploader( serializer, connector ); 
+  }
++------------------------------------------------------------+
+
+  The code above, being for local JUnit testing, sets up both the
+  client and the server side and connects them using a connector that
+  simply "transmits" the on-the-wire string from the client to the
+  server using a local method call. Therefore the code above show
+  configuration of both server and client. In a distributed setting,
+  you would of course have a client application configuring only the
+  client-side roles; and a server application configuring the
+  server-side roles. Please review the <SwingSpirometry> code example
+  for a demonstration of setting up the client side. If you use a
+  Net4Care testing server, the server side will of course be set up.
+
+
+Module View
+~~~~~~~~~~~~~~
+
+ The client-side module view outlines the interfaces and
+ implementations in more detail for the client side. UML stereotypes
+ are used in the following sense:
+
+  * <interface> Standard UML notation for Java interface
+
+  * <final> A default framework implementation is provided and should
+    be used! These implementations contain the template methods of the
+    framework and you should <<not>> change or replace these unless you have a
+    deep understanding of the framework.
+
+  * <default> A default implementation for the normal run-time
+   scenario. For instance <HTTPConnector> is the normal distributed
+   connector to the server side using HTTP.
+
+  * <testing> A {{{http://xunitpatterns.com/Test%20Double.html}test double}}
+  {{[1]}}) implementation to easy or allow simple JUnit testing. For
+  instance the <LocalSynchroneousCallConnector> acts like a
+  HTTPConnector but simply calls methods in local server objects as
+  shown in the code fragment above.
+
+[../images/n4c-module-client.png] The Module view of the client side
+
+
+  The server-side module view shows interfaces and implementations for
+  the server side.
+
+[../images/n4c-module-server.png] The Module view of the server side
+
+
+Test doubles
+~~~~~~~~~~~~~~
+
+ FakeObjectExternalDataSource only contains a few persons! This means
+ you have to used one of these persons in order to make the server
+ side work! Otherwise the server cannot look up address, name, etc. on
+ the given CPR and will throw an exception.
+
+ Review the code for which CPRs are defined.
+
+
+References
+~~~
+
+  {[1]} Meszaros, G. (2007). <xUnit Test Patterns: Refactoring Test
+      Code>. Addison-Wesley.

@@ -1,0 +1,97 @@
+ -----
+ Development
+ -----
+ Net4Care
+ -----
+
+Development tasks
+
+* Creating an internal Net4Care bundle 
+~~~~~ 
+
+ We build bundles using the
+{{{http://felix.apache.org/site/apache-felix-maven-bundle-plugin-bnd.html}Felix
+Maven bundle plugin}}. This means that bundle generation is configured
+in the POM.xml file of the bundle:
+
++---
+<plugin>
+	<groupId>org.apache.felix</groupId>
+	<artifactId>maven-bundle-plugin</artifactId>
+	<extensions>true</extensions>
+	<configuration>
+		<instructions>
+			<Private-Package>com.hbc.server</Private-Package>
+			<Service-Component>com.hbc.server.SpirometryServer;
+				http=org.osgi.service.http.HttpService;
+				serializer=org.net4care.common.Serializer
+			</Service-Component>
+			<Include-Resource>resources=src/main/resources/</Include-Resource>
+		</instructions>
+	</configuration>
+</plugin>
++---
+ 
+ In the example, an OSGi Declarative Service component
+ (<<<com.hbc.server.SpirometryServer>>>) is declared. When the bundle
+ is started, an instance of the component class is created and the set
+ methods of that object (<<<setHttp>>> and <<<setSerializer>>>) are
+ called with objects (that are instances of
+ <<<org.osgi.service.http.HttpService>>> and
+ <<<org.net4care.common.Serializer>>> respectively) as in
+
++---
+  protected void setHttp(HttpService http) throws ServletException, NamespaceException {
+    http.registerServlet(CONTEXTPATH, this, null, null);
+    http.registerResources("/static", "/resources", null);
+    logger.info("Registered servlet at " + CONTEXTPATH);
+  }
+  protected void setSerializer(Serializer serializer) {
+    this.serializer = serializer;
+    logger.info("Got serializer " + serializer);
+  }
+
++---
+
+ The dependencies of this bundle (<<<HttpService>>> and
+ <<<Serializer>>>) must directly or indirectly be declared in the POM
+ file. In this case, this is handled by the following dependency:
+
++---
+<dependency>
+	<groupId>org.net4care</groupId>
+	<artifactId>n4c_receiver</artifactId>
+	<version>0.2-SNAPSHOT</version>
+</dependency>	  
++---
+
+
+* Starting the OSGi runtime
+~~~~~~~~~~~~~~~~
+
+  To start the OSGi runtime, do:
+
++----
+cd n4c_osgi
+mvn pax:provision
++----
+
+  Following the provisioning, a test will be run and you should see something like:
+
++---
+Welcome to Apache Felix Gogo
+
+g! 
+Time: 0,246
+
+OK (1 test)
++---
+
+* Bundle development
+~~~~~~~~~~~~~~~~
+
+  Bundle development may be done through Eclipse (ALL PROJECTS NOT TESTED YET). You must set the "M2_REPO" environment variable (through "Preferences -> Java -> Build Path -> Classpath Variables -> New...") to point to your local Maven repository. On Linux/Mac, this is
+
++---
+/users/<user>/.m2/
++---

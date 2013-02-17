@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<project name="Net4Care" xmlns="http://maven.apache.org/DECORATION/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.0 http://maven.apache.org/xsd/decoration-1.0.0.xsd">
+  <bannerRight>
+    <name>Net4Care</name>
+    <!-- Created via http://yuml.me/17730867 -->
+    <src>/images/net4care-small.png</src>
+    <href>http://www.net4care.org/index.html</href>
+  </bannerRight>
+
+<publishDate position="none"/>
+<version position="none"/>
+
+ <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+  </skin>
+
+  <custom>
+    <fluidoSkin>
+      <topBarEnabled>true</topBarEnabled>
+      <sideBarEnabled>false</sideBarEnabled>
+      <searchEnabled>true</searchEnabled>
+    </fluidoSkin>
+  </custom>
+
+  <poweredBy>
+    <logo name="DIKU" href="http://www.diku.dk/"
+          img="images/diku.png"/>
+    <logo name="DAIMI" href="http://www.cs.au.dk/"
+          img="images/daimi.png"/>
+    <logo name="CaretechInnovation" href="http://www.caretechinnovation.dk/"
+          img="images/caretech.png"/>
+    <logo name="Region Midt" href="http://www.regionmidtjylland.dk/"
+          img="images/region_midt_logo.gif"/>
+    <logo name="EU" href="http://www.ebst.dk/regionaludvikling/0/3"
+          img="images/EU-logo_DK_Regional.jpg"/>
+  </poweredBy>
+
+
+  <body>
+    <!-- This removes some artefacts on the original page -->
+    <head><script type="text/javascript">
+      function correct() {
+         document.body.innerHTML = document.body.innerHTML.replace('$headContent','');
+	  element = document.getElementById("breadcrumbs");
+	  element.parentNode.removeChild(element);
+	}
+       window.onload = correct;
+     </script></head>
+    <menu name="Getting Started">
+      <item name="Vision" href="gettingstarted/vision.html"/>
+      <item name="Download" href="gettingstarted/download.html"/>
+      <item name="Hello, World!" href="gettingstarted/hello.html"/>
+    </menu>
+    <menu name="Application Development">
+      <item name="Learning Net4Care" href="gettingstarted/learning.html"/>
+      <item name="Configuring Net4Care" 
+	    href="developing/configure.html"/>
+      <item name="Defining Observations" href="developing/observation.html"/>
+      <item name="Creating an Android Application" href="developing/android.html"/>
+      <item name="Introduction to Skype" href="gettingstarted/skype.html"/>
+      <item name="Creating a Skype Application" href="developing/skypeap.html"/>
+      <item name="Deploying in a Cloud" href="developing/cloud.html"/>
+    </menu>
+
+    <menu name="Framework Development">
+      <item name="OSGi Development" href="developing/osgi.html"/>
+      <item name="Testing" href="developing/testing.html"/>
+      <item name="Data Tier" href="developing/datatier.html"/>
+      <item name="Configuring HTTPS" href="developing/https.html"/>
+      <item name="FAQ" href="faq.html"/>
+    </menu>
+
+    <menu name="Documentation">
+      <item name="Javadoc" href="javadoc/index.html"/>
+      <item name="REST interface" href="documentation/rest_interface.html"/>			
+      <item name="Software Architecture" 
+	    href="documentation/architecture.html"/>
+
+      <item name="Performance Testing" 
+	    href="internal/grinder.html"/>
+    </menu>
+
+    <menu name="Support">
+      <item name="Contact and Issue Tracking" href="about/issues.html"/>
+      <item name="New Ticket" href="http://redmine.net4care.dk/projects/net4care/issues/new"/>
+      <item name="Tickets" href="http://redmine.net4care.dk/projects/net4care/issues"/>
+    </menu>
+
+    <!-- 
+     <menu name="Internal"> 
+       <item name="Developing" href="internal/developing.html"/> 
+       <item name="Backlog" href="internal/backlog.html"/> 
+       <item name="EC2 setup" href="internal/ec2.html"/> 
+       <item name="Grinder" href="internal/grinder.html"/> 
+     </menu> 
+     -->
+  </body>
+</project>

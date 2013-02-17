@@ -1,0 +1,350 @@
+ -----
+ The Net4Care Ecosystem Platform
+ -----
+ Net4Care
+ -----
+
+Using Skype
+~~~~~~~~~~~~~~
+
+  The net4care framework comes with {{{http://developer.skype.com/}SkypeKit SDK}} '
+  (currently version 4.1.2) and some of their 
+  tutorial code which is modified to increase ease of use. This means 
+  that when learning to develop a Skype enabled application, then the 
+  Skype developer page is a good place to start but there will be some 
+  differences in the structure when moving on to Net4Care Skype. These 
+  differences will be explained further under {{{../developing/skypeap.html#Net4Care_Skype_deviations}Net4Care Skype deviation}} located under 
+  the application development section.
+  
+  To see examples of how to use Skype in the context of Net4Care go to the {{Demonstration}} section of this page but if 
+  you are new to Net4Care Skype then it is recommended to keep reading.
+  
+%{toc|fromDepth=1|toDepth=4}
+
+* Before you begin
+~~~~~~~~~~~~~~
+
+  In order to develop an application using Skype you will need to:
+  
+  [[1]] Register as developer at {{{http://developer.skype.com/}Skype developer site}}
+  
+  [[2]] Join the program for SkypeKit Desktop development
+  
+  [[3]] Request and download a Skype Runtime matching the version of Net4Care Skype (currently version 4.1.2). This is an executable file.
+  
+  [[4]] Request and download a developer keypair
+  
+  [] 
+  
+  All these steps are explained in detail at the {{{http://developer.skype.com/}Skype developer site}}. Furthermore the 
+  keypair 'myKeyPair.pem' needs a 'myKeyPair.der' to represent a valid keypair and to generate 'myKeyPair.der'
+  
++-----------------------------------------------------------+
+  openssl pkcs8 -topk8 -nocrypt -inform PEM -outform DER -in myKeyPair.pem -out myKeyPair.der 
++-----------------------------------------------------------+
+
+  See {{{http://developer.skype.com/skypekit/development-guide/java-tutorial/tutorial-guide-java}Skype java tutorial guide}} for further details.
+  
+  You will need to have maven installed {{{http://maven.apache.org/download.html} download maven here}}.
+  
+  <<Note:>> Remember to add MAVEN_HOME\bin to your PATH environment variable. 
+  
+  <<Note:>> If you experience problems with maven being 
+  stuck at downloading dependencies, you might need to use JRE 1.6 instead of JRE 1.7. 
+  
+  If you develop using eclipse it is recommended that you install the maven to eclipse plugin: {{{http://www.eclipse.org/m2e/download/}m2e}}.
+
+* Integrating Skype in your Net4Care installation
+~~~~~~~~~~~~~~
+
+  Simply install net4care using maven:
+  
++------------------------------------------------------------+
+	/path_to_net4care/mvn install
++------------------------------------------------------------+  
+
+ And net4care skype is now available using the following dependency:
+  
++------------------------------------------------------------+  
+
+	<dependency>
+		<groupId>org.net4care</groupId>
+	  	<artifactId>n4c_skype</artifactId>
+	  	<version>0.2-SNAPSHOT</version>
+	</dependency>
+  
++------------------------------------------------------------+
+  
+ <Congratulations> you are now ready to run some examples!
+ 
+* Demonstration
+
+** Usage Scenario
+~~~~~~~~~~~~~~
+
+  Jens Hansen is an elderly patient who has a Net4Care powered device at his home, enabling him to perform daily measurements. He 
+  has no former experience with computers whatsoever, hence the system has to be as simple as possible.
+
+  Because of the fact that he most recently received this equipment, he is suppose to be in contact with a physician every 
+  time he wishes to perform a new measurement. Therefore, as Jens go to his device to perform a measurement, he is met 
+  with the single option, namely 'call hospital'. After pressing the call hospital button, Jens is informed to wait until the 
+  hospital responds.
+  Inside the hospital the physician Anders Jakobsen is responsible for aiding the Net4Care patients and has the Net4Care physician 
+  application running on his personal computer. The application now alerts Anders with the message that Jens is ready to perform a new 
+  measurement. Hans now has two options: the first option is to call Jens right away, otherwise it is possible to write a message 
+  like for example 'You will get help with your measurement in no later than 2 minutes'.
+  When Jens eventually receives a call from the hospital, his Net4Care application automatically accepts the call and makes the 
+  new option 'perform measurement' available. At this point the physician and the patient is able to talk together to ensure a 
+  valid measurement. When the measurement is performed then Net4Care ensures a proper handling and persistence of the data. 
+  After the measurement is completed successfully the physician can look a history of previous measurements.
+  When done, the physician hangs up and this resets the state of both patient and physician to their initial state.
+  
+** About the example code
+~~~~~~~~~~~~~~ 
+
+  Under n4c_example in the Net4Care source, you will find a folder named SkypeSpirometry. This folder contains code to perform 
+  the above scenario.
+
+  This example should preferably be run  
+  on two different machines. Alternatively, have a VM running on top of your OS as the second machine. A third option is to 
+  fake the behavior of one of the applications using the chat functionality of the official Skype program (does not matter if you use 
+  the desktop version or the smartphone app), see: {{{How_to_run_Spirometry_example_using_only_one_machine}How to run spirometry example using only one machine}}.   
+  
+  Both applications takes some arguments.
+  
+  PatientApplication:
+  
+  * SkypeAccount
+   
+  * SkypePassword 
+  
+  * PhysicianSkypeAccount
+  
+  * Path to keypair
+  
+  []
+  
+  PhysicianApplication:
+  
+  * SkypeAccount
+   
+  * SkypePassword 
+  
+  * Path to keypair
+  
+  []
+  
+  
+** Running SkypeSpirometry
+~~~~~~~~~~~~~~ 
+
+  Fire up your SkypeKit runtime (as always when running SkypeKit applications). On windows you simple double-click the executable.
+  
+  More detail can be found at: {{http://developer.skype.com/skypekit/development-guide/java-tutorial/tutorial-guide-java}} step 5.
+
+*** Using Maven only
+~~~~~~~~~~~~~~ 
+
+  Comiling the code: 
+
++-------------------------------------+
+	/path_to_net4care/n4c_example/SkypeSpirometry/mvn clean install
++-------------------------------------+
+
+  Now navigate to the application you want to start:
+
++-------------------------------------+
+	/path_to_net4care/n4c_example/SkypeSpirometry/n4c_physician
++-------------------------------------+
+
+  <<Or:>>
+  
++-------------------------------------+
+	/path_to_net4care/n4c_example/SkypeSpirometry/n4c_patient
++-------------------------------------+
+
+  And edit the arguments passed to the application in pom.xml located inside this folder.
+  Below is the part of n4c_patient/pom.xml where the arguments is passed:
+
++-------------------------------------+
+
+	<!-- Patient skype account name -->
+        <arg value="" />
+        <!-- Patient skype account password -->
+        <arg value="" />
+        <!-- Physician skype account name -->
+        <arg value="" />
+        <!-- Path to keypair -->
+        <arg value="" />
+        
++-------------------------------------+
+
+  <<Note:>> The path to keypair have to be an absolute path to a folder containing your two keypair files. Furthermore, the default 
+  name of the key files are skypekit-cert and if your name differs, you should provide a full path to your .pem file.
+
+  Now you are ready to run the example:
+
++-------------------------------------+
+	mvn test
++-------------------------------------+
+
+  The maven phase named test is normally used to run the junit tests that reside in src/test but since the antrun plugin 
+  is configured to run during the test phase in pom.xml, the example code is run instead.
+
+
+*** Using Eclipse
+
+ At this point, following the steps above, you should have eclipse setup to use working sets and inside a working set have the n4c_skype project.
+  
+ Now lets compile the code:
+  
++-------------------------------------+
+	/path_to_net4care/n4c_example/SkypeSpirometry/mvn clean install eclipse:eclipse
++-------------------------------------+
+
+  And import the three projects: n4c_data, n4c_patient and n4c_physician the same way that you imported n4c_skype.
+  
+  <<Note:>> If you forget to specify your working set when importing, then the projects most likely gets imported 
+  to the working set 'Other Projects'. Simply drag the projects to your own working set if this happens.
+  
+  Your package explorer should look something like this:
+  
+[../images/eclipse_import_skypespirometry.png]
+
+   
+  Start either PatientApplication or PhysicianApplication with the correct arguments. The arguments are passed 
+  by creating a run configuration for the application by:
+  
++-------------------------------------+
+	Right-click application->Run As->Run configuration 
++-------------------------------------+
+
+  Here you have the option to run as a java application and pass the needed arguments.
+  
+  The arguments needed for PatientApplication are:
+  
+  * accountname
+  
+  * accountpassword
+  
+  * accountname of physician
+  
+  * an absolute path to the keypair
+  
+  []
+  
+    The arguments needed for PatientApplication are:
+  
+  * accountname
+  
+  * accountpassword
+  
+  * an absolute path to the keypair
+  
+  []
+  
+  Below is an image showing how to add the arguments.
+  
+[../images/skype_run_configuration.jpg]
+  
+**** How to run Spirometry example using only one machine
+
+  Since both applications communicate through Skype using chat, it is possible to fake the behavior of both applications using 
+  one of the official Skype programs.
+  
+  Below we use <<skypePatient>> and <<skypePhysician>> as examples of the two skype account names being used.
+  
+  It should be clear that both Spirometry example applications operate by moving from one fixed state to another, see {{{SkypeSpirometry_Screenshots}SkypeSpirometry Screenshots}}. 
+  The states are described below with a comment on how make the application change state using an official Skype program:
+  
+  * Initial State
+
+  <<skypePhysician>> waits for patients to take contact.
+
+  * Patient pressed 'Contact the hospital'
+  
+  The initial message generated by the <<skypePatient>> when pressing 'Contact the hospital' is:
+
++-------------------------------------+
+  [<ptName>:<ptCPR>] wishes to perform measurement
++-------------------------------------+
+
+  Here the crucial part is [\<ptName\>:\<ptCPR\>] which is used by the <<skypePhysician>> later. So to 
+  fake the initial contact by the <<skypePatient>>, use one of the following valid name and CPR pairs:
+
+		* Nancy Berggren 251248-4916
+		
+		* Jens Hansen 120753-2355
+		
+		* Birgitte Roenholt 120753-2355
+		
+		* Birgitte Roenholt 030167-1648
+		
+		* Morten Larsson 210688-1111
+		
+		[]
+		
+		\ 
+		 
+  and write it in a chat message to <<skypePhysician>>.
+  
+  For instance:
+	
++-------------------------------------+
+  [<Jens Hansen>:<120753-2355>] wishes to perform measurement
++-------------------------------------+
+  
+  * Patient waiting for physician to become available
+  
+  * Physician pressed 'Call patient'
+  
+  To fake <<skypePhysician>>, simply place a call to <<skypePatient>>.
+  
+  * Physician has received measurements
+
+  Since the handling of measurements is done by Net4Care code, the actual storage of measurements cannot be faked by 
+  Skype. It is possible to make the application move to the next state though, simply by sending a chat message like:
+  
++-------------------------------------+
+  Spirometry measurements: \n FVC: 6.6 \n FEV1: 7.8
++-------------------------------------+
+  
+  []
+
+  
+**** SkypeSpirometry Screenshots
+  
+***** Initial State
+
+[../images/skype_physician1.png]
+
+[../images/skype_patient1.png]
+
+***** Patient pressed 'Contact the hospital'
+
+[../images/skype_physician2.png]
+
+[../images/skype_patient2.png]
+
+***** Patient waiting for physician to become available
+
+[../images/skype_patient2.5.png]
+
+***** Physician pressed 'Call patient'
+
+[../images/skype_physician3.png]
+
+[../images/skype_patient3.png]
+
+***** Physician has received measurements
+
+[../images/skype_physician4.png]
+
+***** Physician looking up history of earlier measurements
+
+[../images/skype_physician5.png]
+
+* Further reading 
+~~~~~~~~~~
+
+ To get an introduction in how to develop your own application using Net4Care and Skype go to {{{../developing/skypeap.html}Creating Skype applications}}.
